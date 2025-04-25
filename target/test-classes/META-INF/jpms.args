@@ -1,6 +1,0 @@
---add-modules
-java.sql
---patch-module
-com.turniermanagement=_
---add-reads
-com.turniermanagement=ALL-UNNAMED
