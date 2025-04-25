@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teilnehmerverwaltung</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #34495e;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .search-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-filter input {
+            flex-grow: 1;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* CSV Import Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+        }
+        
+        /* Benachrichtigungen */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .notification.success {
+            background-color: var(--secondary);
+        }
+        
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Gruppe-Tag Styling */
+        .group-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+        }
+        
+        .group-tag.anfaenger {
+            background-color: var(--secondary);
+        }
+        
+        .group-tag.fortgeschritten {
+            background-color: var(--primary);
+        }
+        
+        .group-tag.profi {
+            background-color: var(--warning);
+        }
+        
+        /* Statistik-Kacheln */
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            color: var(--gray);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab-header">
+            <h1>Teilnehmerverwaltung</h1>
+            <div class="btn-group">
+                <button class="btn-primary" id="showAddParticipantForm">Teilnehmer hinzufügen</button>
+                <button class="btn-secondary" id="importParticipantsBtn">CSV Import</button>
+                <button class="btn-secondary" id="exportParticipantsBtn">CSV Export</button>
+            </div>
+        </div>
+        
+        <!-- Statistik-Übersicht -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3 id="totalParticipantsCount">0</h3>
+                <p>Gesamt Teilnehmer</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="beginnerCount">0</h3>
+                <p>Anfänger</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="intermediateCount">0</h3>
+                <p>Fortgeschrittene</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="proCount">0</h3>
+                <p>Profis</p>
+            </div>
+        </div>
+        
+        <!-- Teilnehmer-Formular (versteckt bis "Hinzufügen" geklickt wird) -->
+        <div id="participantForm" class="card hidden">
+            <h2 id="participantFormTitle">Teilnehmer hinzufügen</h2>
+            <form id="addParticipantForm">
+                <input type="hidden" id="participantId">
+                <div class="form-group">
+                    <label for="name">Name <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-Mail <span style="color: var(--danger);">*</span></label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Telefon</label>
+                    <input type="tel" id="phone">
+                </div>
+                <div class="form-group">
+                    <label for="group">Gruppe</label>
+                    <select id="group">
+                        <option value="">Keine Gruppe</option>
+                        <option value="Anfänger">Anfänger</option>
+                        <option value="Fortgeschritten">Fortgeschritten</option>
+                        <option value="Profi">Profi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Anmerkungen</label>
+                    <textarea id="notes" rows="3"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn-primary">Speichern</button>
+                    <button type="button" class="btn-danger" id="cancelParticipantForm">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Teilnehmer-Tabelle -->
+        <div class="card">
+            <div class="search-filter">
+                <input type="text" id="participantSearch" placeholder="Suchen...">
+                <select id="groupFilter">
+                    <option value="">Alle Gruppen</option>
+                    <option value="Anfänger">Anfänger</option>
+                    <option value="Fortgeschritten">Fortgeschritten</option>
+                    <option value="Profi">Profi</option>
+                </select>
+            </div>
+            
+            <table id="participantsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>E-Mail</th>
+                        <th>Telefon</th>
+                        <th>Gruppe</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Wird dynamisch gefüllt -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CSV Import Modal -->
+        <div id="importModal" class="modal">
+            <div class="modal-content">
+                <h2>CSV Import</h2>
+                <p>Bitte wähle eine CSV-Datei zum Importieren aus. Die Datei sollte die Spalten Name, E-Mail, Telefon und Gruppe enthalten.</p>
+                <div class="form-group">
+                    <input type="file" id="csvFileInput" accept=".csv">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-primary" id="confirmImport">Importieren</button>
+                    <button class="btn-danger" id="cancelImport">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benachrichtigungsbereich -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script>
+        // Datenmodell für Teilnehmer
+        let participants = [
+            { id: 1, name: "Max Mustermann", email: "max@example.com", phone: "0123456789", group: "Fortgeschritten", notes: "Regelmäßiger Teilnehmer" },
+            { id: 2, name: "Anna Schmidt", email: "anna@example.com", phone: "0123456788", group: "Anfänger", notes: "Erste Teilnahme" },
+            { id: 3, name: "Thomas Müller", email: "thomas@example.com", phone: "0123456787", group: "Profi", notes: "Turniersieger 2024" },
+            { id: 4, name: "Lisa Weber", email: "lisa@example.com", phone: "0123456786", group: "Fortgeschritten", notes: "" },
+            { id: 5, name: "Michael Koch", email: "michael@example.com", phone: "0123456785", group: "Anfänger", notes: "Benötigt Ausrüstung" },
+            { id: 6, name: "Sarah Meyer", email: "sarah@example.com", phone: "0123456784", group: "Profi", notes: "Internationale Erfahrung" },
+            { id: 7, name: "Daniel Becker", email: "daniel@example.com", phone: "0123456783", group: "Fortgeschritten", notes: "" },
+            { id: 8, name: "Julia Fischer", email: "julia@example.com", phone: "0123456782", group: "Anfänger", notes: "Hat eigene Ausrüstung" }
+        ];
+        
+        // DOM-Elemente laden, wenn das Dokument bereit ist
+        document.addEventListener('DOMContentLoaded', function() {
+            // Eventlistener für Buttons einrichten
+            document.getElementById('showAddParticipantForm').addEventListener('click', showAddParticipantForm);
+            document.getElementById('cancelParticipantForm').addEventListener('click', hideParticipantForm);
+            document.getElementById('addParticipantForm').addEventListener('submit', saveParticipant);
+            document.getElementById('participantSearch').addEventListener('input', loadParticipantsTable);
+            document.getElementById('groupFilter').addEventListener('change', loadParticipantsTable);
+            document.getElementById('importParticipantsBtn').addEventListener('click', showImportModal);
+            document.getElementById('cancelImport').addEventListener('click', hideImportModal);
+            document.getElementById('confirmImport').addEventListener('click', importParticipants);
+            document.getElementById('exportParticipantsBtn').addEventListener('click', exportParticipants);
+            
+            // Teilnehmertabelle und Statistiken laden
+            loadParticipantsTable();
+            updateStatistics();
+        });
+        
+        // Helfer-Funktionen
+        function generateId() {
+            return Math.floor(Math.random() * 1000000);
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Teilnehmerverwaltungsfunktionen
+        function loadParticipantsTable() {
+            const searchTerm = document.getElementById('participantSearch').value.toLowerCase();
+            const groupFilter = document.getElementById('groupFilter').value;
+            
+            const filteredParticipants = participants.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                     p.email.toLowerCase().includes(searchTerm) ||
+                                     (p.phone && p.phone.toLowerCase().includes(searchTerm));
+                const matchesGroup = !groupFilter || p.group === groupFilter;
+                return matchesSearch && matchesGroup;
+            });
+            
+            const tbody = document.querySelector('#participantsTable tbody');
+            tbody.innerHTML = '';
+            
+            if (filteredParticipants.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5" style="text-align: center;">Keine Teilnehmer gefunden</td>';
+                tbody.appendChild(row);
+                return;
+            }
+            
+            filteredParticipants.forEach(participant => {
+                const row = document.createElement('tr');
+                
+                // Gruppenlabel mit Farbkodierung
+                let groupDisplay = '-';
+                if (participant.group) {
+                    const groupClass = participant.group === 'Anfänger' ? 'anfaenger' : 
+                                      participant.group === 'Fortgeschritten' ? 'fortgeschritten' : 'profi';
+                    groupDisplay = `<span class="group-tag ${groupClass}">${participant.group}</span>`;
+                }
+                
+                row.innerHTML = `
+                    <td>${participant.name}</td>
+                    <td>${participant.email}</td>
+                    <td>${participant.phone || '-'}</td>
+                    <td>${groupDisplay}</td>
+                    <td class="actions">
+                        <button class="btn-primary" onclick="editParticipant(${participant.id})">Bearbeiten</button>
+                        <button class="btn-danger" onclick="deleteParticipant(${participant.id})">Löschen</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateStatistics() {
+            const totalParticipants = participants.length;
+            const beginnerCount = participants.filter(p => p.group === 'Anfänger').length;
+            const intermediateCount = participants.filter(p => p.group === 'Fortgeschritten').length;
+            const proCount = participants.filter(p => p.group === 'Profi').length;
+            
+            document.getElementById('totalParticipantsCount').textContent = totalParticipants;
+            document.getElementById('beginnerCount').textContent = beginnerCount;
+            document.getElementById('intermediateCount').textContent = intermediateCount;
+            document.getElementById('proCount').textContent = proCount;
+        }
+        
+        function showAddParticipantForm() {
+            document.getElementById('participantFormTitle').textContent = 'Teilnehmer hinzufügen';
+            document.getElementById('participantId').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('group').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('participantForm').classList.remove('hidden');
+        }
+        
+        function hideParticipantForm() {
+            document.getElementById('participantForm').classList.add('hidden');
+        }
+        
+        function saveParticipant(event) {
+            event.preventDefault();
+            
+            const participantId = document.getElementById('participantId').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const group = document.getElementById('group').value;
+            const notes = document.getElementById('notes').value.trim();
+            
+            if (!name || !email) {
+                showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
+                return;
+            }
+            
+            // E-Mail-Format prüfen
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showNotification('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'error');
+                return;
+            }
+            
+            // Prüfen, ob die E-Mail-Adresse bereits existiert (außer bei Bearbeitung)
+            const emailExists = participants.some(p => p.email === email && (!participantId || p.id !== parseInt(participantId)));
+            if (emailExists) {
+                showNotification('Diese E-Mail-Adresse wird bereits verwendet.', 'error');
+                return;
+            }
+            
+            if (participantId) {
+                // Teilnehmer bearbeiten
+                const index = participants.findIndex(p => p.id === parseInt(participantId));
+                if (index !== -1) {
+                    participants[index] = {
+                        id: parseInt(participantId),
+                        name,
+                        email,
+                        phone,
+                        group,
+                        notes
+                    };
+                    showNotification('Teilnehmer erfolgreich aktualisiert.', 'success');
+                }
+            } else {
+                // Neuen Teilnehmer hinzufügen
+                const newParticipant = {
+                    id: generateId(),
+                    name,
+                    email,
+                    phone,
+                    group,
+                    notes
+                };
+                participants.push(newParticipant);
+                showNotification('Teilnehmer erfolgreich hinzugefügt.', 'success');
+            }
+            
+            hideParticipantForm();
+            loadParticipantsTable();
+            updateStatistics();
+        }
+        
+        function editParticipant(id) {
+            const participant = participants.find(p => p.id === id);
+            if (!participant) return;
+            
+            document.getElementById('participantFormTitle').textContent = 'Teilnehmer bearbeiten';
+            document.getElementById('participantId').value = participant.id;
+            document.getElementById('name').value = participant.name;
+            document.getElementById('email').value = participant.email;
+            document.getElementById('phone').value = participant.phone || '';
+            document.getElementById('group').value = participant.group || '';
+            document.getElementById('notes').value = participant.notes || '';
+            document.getElementById('participantForm').classList.remove('hidden');
+        }
+        
+        function deleteParticipant(id) {
+            if (!confirm('Sind Sie sicher, dass Sie diesen Teilnehmer löschen möchten?')) {
+                return;
+            }
+            
+            const index = participants.findIndex(p => p.id === id);
+            if (index !== -1) {
+                participants.splice(index, 1);
+                showNotification('Teilnehmer erfolgreich gelöscht.', 'success');
+                loadParticipantsTable();
+                updateStatistics();
+            }
+        }
+        
+        function showImportModal() {
+            document.getElementById('importModal').style.display = 'flex';
+        }
+        
+        function hideImportModal() {
+            document.getElementById('importModal').style.display = 'none';
+            document.getElementById('csvFileInput').value = '';
+        }
+        
+        function importParticipants() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showNotification('Bitte wählen Sie eine CSV-Datei aus.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const lines = content.split('\n');
+                
+                // Überprüfen der Header
+                const headers = lines[0].split(',');
+                const nameIndex = headers.findIndex(h => h.trim().toLowerCase() === 'name');
+                const emailIndex = headers.findIndex(h => h.trim().toLowerCase() === 'e-mail' || h.trim().toLowerCase() === 'email');
+                const phoneIndex = headers.findIndex(h => h.trim().toLowerCase() === 'telefon' || h.trim().toLowerCase() === 'phone');
+                const groupIndex = headers.findIndex(h => h.trim().toLowerCase() === 'gruppe' || h.trim().toLowerCase() === 'group');
+                const notesIndex = headers.findIndex(h => h.trim().toLowerCase() === 'anmerkungen' || h.trim().toLowerCase() === 'notes');
+                
+                if (nameIndex === -1 || emailIndex === -1) {
+                    showNotification('Die CSV-Datei muss mindestens die Spalten "Name" und "E-Mail" enthalten.', 'error');
+                    return;
+                }
+                
+                // Daten importieren
+                let importedCount = 0;
+                let skippedCount = 0;
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    
+                    const values = lines[i].split(',');
+                    const name = values[nameIndex]?.trim();
+                    const email = values[emailIndex]?.trim();
+                    
+                    if (!name || !email) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // Prüfen, ob die E-Mail-Adresse bereits existiert
+                    if (participants.some(p => p.email === email)) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    const phone = phoneIndex !== -1 ? values[phoneIndex]?.trim() : '';
+                    const group = groupIndex !== -1 ? values[groupIndex]?.trim() : '';
+                    const notes = notesIndex !== -1 ? values[notesIndex]?.trim() : '';
+                    
+                    participants.push({
+                        id: generateId(),
+                        name,
+                        email,
+                        phone,
+                        group,
+                        notes
+                    });
+                    
+                    importedCount++;
+                }
+                
+                hideImportModal();
+                loadParticipantsTable();
+                updateStatistics();
+                
+                if (importedCount > 0) {
+                    showNotification(`${importedCount} Teilnehmer erfolgreich importiert. ${skippedCount} übersprungen.`, 'success');
+                } else {
+                    showNotification(`Keine neuen Teilnehmer importiert. ${skippedCount} übersprungen.`, 'warning');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function exportParticipants() {
+            // CSV-Header definieren
+            const headers = ['Name', 'E-Mail', 'Telefon', 'Gruppe', 'Anmerkungen'];
+            
+            // Teilnehmerdaten in CSV-Zeilen umwandeln
+            let csvContent = headers.join(',') + '\n';
+            
+            participants.forEach(p => {
+                const row = [
+                    p.name.replace(/,/g, ';'),  // Kommas durch Semikolons ersetzen
+                    p.email.replace(/,/g, ';'),
+                    (p.phone || '').replace(/,/g, ';'),
+                    (p.group || '').replace(/,/g, ';'),
+                    (p.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')  // Zeilenumbrüche entfernen
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download der CSV-Datei
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Teilnehmer_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Teilnehmerliste erfolgreich exportiert.', 'success');
+        }
+    </script>
+</body>
+</html>

@@ -36,7 +36,15 @@ public class Tournament {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public List<Player> getPlayers() { return players; }
-    public void setPlayers(List<Player> players) { this.players = players; }
+    public void setPlayers(List<Player> players) { 
+        this.players = players;
+        // Aktualisiere die bidirektionale Beziehung
+        for (Player player : players) {
+            if (!player.getTournaments().contains(this)) {
+                player.getTournaments().add(this);
+            }
+        }
+    }
     public List<Round> getRounds() { return rounds; }
     public void setRounds(List<Round> rounds) { this.rounds = rounds; }
     public TournamentStatus getStatus() { return status; }
@@ -45,11 +53,20 @@ public class Tournament {
     public void addPlayer(Player player) {
         if (!players.contains(player)) {
             players.add(player);
+            // Vermeide Endlosschleife durch Prüfung
+            if (!player.getTournaments().contains(this)) {
+                player.addTournament(this);
+            }
         }
     }
 
     public void removePlayer(Player player) {
-        players.remove(player);
+        if (players.remove(player)) {
+            // Vermeide Endlosschleife durch Prüfung
+            if (player.getTournaments().contains(this)) {
+                player.removeTournament(this);
+            }
+        }
     }
 
     public void addRound(Round round) {

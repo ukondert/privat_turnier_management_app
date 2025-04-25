@@ -13,14 +13,26 @@ public abstract class BaseDAOTest {
     void setUp() throws SQLException {
         // In-Memory SQLite Datenbank für Tests
         connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+        dropTablesIfExist();
         createTables();
+    }
+    
+    private void dropTablesIfExist() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
+            // Zuerst die Verbindungstabellen löschen (wegen Fremdschlüsselbeziehungen)
+            stmt.execute("DROP TABLE IF EXISTS tournament_player");
+            stmt.execute("DROP TABLE IF EXISTS match");
+            stmt.execute("DROP TABLE IF EXISTS round");
+            stmt.execute("DROP TABLE IF EXISTS tournament");
+            stmt.execute("DROP TABLE IF EXISTS player");
+        }
     }
 
     private void createTables() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             // Player Tabelle
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS player (
+                CREATE TABLE player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     ranking INTEGER DEFAULT 0,
@@ -31,7 +43,7 @@ public abstract class BaseDAOTest {
 
             // Tournament Tabelle
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS tournament (
+                CREATE TABLE tournament (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     start_date TEXT,
@@ -42,7 +54,7 @@ public abstract class BaseDAOTest {
 
             // Round Tabelle
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS round (
+                CREATE TABLE round (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     tournament_id INTEGER,
                     round_number INTEGER,
@@ -53,7 +65,7 @@ public abstract class BaseDAOTest {
 
             // Match Tabelle
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS match (
+                CREATE TABLE match (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     round_id INTEGER,
                     player1_id INTEGER,
@@ -71,7 +83,7 @@ public abstract class BaseDAOTest {
 
             // Tournament_Player Verbindungstabelle
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS tournament_player (
+                CREATE TABLE tournament_player (
                     tournament_id INTEGER,
                     player_id INTEGER,
                     PRIMARY KEY (tournament_id, player_id),

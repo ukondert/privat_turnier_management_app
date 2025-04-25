@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnierverwalter</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #34495e;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            padding: 20px 0;
+            height: 100%;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .sidebar ul {
+            list-style-type: none;
+        }
+        
+        .sidebar li {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar li:hover, .sidebar li.active {
+            background-color: var(--primary);
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .search-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-filter input {
+            flex-grow: 1;
+        }
+        
+        .tournament-tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .round {
+            display: flex;
+            margin-bottom: 40px;
+            width: 100%;
+            justify-content: space-around;
+        }
+        
+        .match {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            min-width: 200px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .player {
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .player:first-child {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .player.winner {
+            background-color: rgba(46, 204, 113, 0.2);
+            font-weight: bold;
+        }
+        
+        .player.loser {
+            color: var(--gray);
+        }
+        
+        .score-input {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .match-connector {
+            height: 20px;
+            border-right: 2px solid #ddd;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .tournament-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .tournament-info div {
+            flex: 1;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--secondary);
+            transition: width 0.3s;
+        }
+        
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #tournamentTree {
+            min-height: 500px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stage {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
+        
+        .bracket {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .match-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: white;
+            width: 200px;
+            margin: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .participant {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .participant:last-child {
+            border-bottom: none;
+        }
+        
+        .participant.winner {
+            background-color: rgba(46, 204, 113, 0.2);
+            font-weight: bold;
+        }
+        
+        .participant.loser {
+            color: var(--gray);
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Turnierverwalter</h2>
+            <ul id="menu">
+                <li data-tab="dashboard" class="active">Dashboard</li>
+                <li data-tab="participants">Teilnehmerverwaltung</li>
+                <li data-tab="tournaments">Turnierplanung</li>
+                <li data-tab="management">Turnierdurchführung</li>
+                <li data-tab="results">Ergebnisse & Statistiken</li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <!-- Dashboard -->
+            <div id="dashboard" class="tab-content active">
+                <h1>Dashboard</h1>
+                <div class="card">
+                    <h2>Willkommen zum Turnierverwalter</h2>
+                    <p>Diese Anwendung hilft dir bei der Organisation und Durchführung von Turnieren.</p>
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="switchTab('participants')">Teilnehmer verwalten</button>
+                        <button class="btn-secondary" onclick="switchTab('tournaments')">Turnier erstellen</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Aktuelle Turniere</h3>
+                    <table id="activeTournaments">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Datum</th>
+                                <th>Teilnehmer</th>
+                                <th>Status</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Wird dynamisch gefüllt -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3>Statistik</h3>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="text-align: center; padding: 15px; flex: 1;">
+                            <h3 id="totalParticipants">0</h3>
+                            <p>Gesamt Teilnehmer</p>
+                        </div>
+                        <div style="text-align: center; padding: 15px; flex: 1;">
+                            <h3 id="totalTournaments">0</h3>
+                            <p>Turniere</p>
+                        </div>
+                        <div style="text-align: center; padding: 15px; flex: 1;">
+                            <h3 id="activeTournamentCount">0</h3>
+                            <p>Aktive Turniere</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teilnehmerverwaltung -->
+            <div id="participants" class="tab-content">
+                <div class="tab-header">
+                    <h1>Teilnehmerverwaltung</h1>
+                    <div class="btn-group">
+                        <button class="btn-primary" id="showAddParticipantForm">Teilnehmer hinzufügen</button>
+                        <button class="btn-secondary" id="importParticipantsBtn">CSV Import</button>
+                        <button class="btn-secondary" id="exportParticipantsBtn">CSV Export</button>
+                    </div>
+                </div>
+                
+                <div id="participantForm" class="card hidden">
+                    <h2 id="participantFormTitle">Teilnehmer hinzufügen</h2>
+                    <form id="addParticipantForm">
+                        <input type="hidden" id="participantId">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-Mail</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefon</label>
+                            <input type="tel" id="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="group">Gruppe</label>
+                            <select id="group">
+                                <option value="">Keine Gruppe</option>
+                                <option value="Anfänger">Anfänger</option>
+                                <option value="Fortgeschritten">Fortgeschritten</option>
+                                <option value="Profi">Profi</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn-primary">Speichern</button>
+                            <button type="button" class="btn-danger" id="cancelParticipantForm">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="search-filter">
+                        <input type="text" id="participantSearch" placeholder="Suchen...">
+                        <select id="groupFilter">
+                            <option value="">Alle Gruppen</option>
+                            <option value="Anfänger">Anfänger</option>
+                            <option value="Fortgeschritten">Fortgeschritten</option>
+                            <option value="Profi">Profi</option>
+                        </select>
+                    </div>
+                    
+                    <table id="participantsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>E-Mail</th>
+                                <th>Telefon</th>
+                                <th>Gruppe</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Wird dynamisch gefüllt -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- CSV Import Modal -->
+                <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;">
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; width: 500px;">
+                        <h2>CSV Import</h2>
+                        <p>Bitte wähle eine CSV-Datei zum Importieren aus. Die Datei sollte die Spalten Name, E-Mail, Telefon und Gruppe enthalten.</p>
+                        <div class="form-group">
+                            <input type="file" id="csvFileInput" accept=".csv">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn-primary" id="confirmImport">Importieren</button>
+                            <button class="btn-danger" id="cancelImport">Abbrechen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Turnierplanung -->
+            <div id="tournaments" class="tab-content">
+                <div class="tab-header">
+                    <h1>Turnierplanung</h1>
+                    <div class="btn-group">
+                        <button class="btn-primary" id="showAddTournamentForm">Turnier erstellen</button>
+                    </div>
+                </div>
+                
+                <div id="tournamentForm" class="card hidden">
+                    <h2>Turnier erstellen</h2>
+                    <form id="addTournamentForm">
+                        <div class="form-group">
+                            <label for="tournamentName">Name</label>
+                            <input type="text" id="tournamentName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentDate">Datum</label>
+                            <input type="date" id="tournamentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentType">Turniertyp</label>
+                            <select id="tournamentType" required>
+                                <option value="knockout">K.O.-System</option>
+                                <option value="doubleKnockout">Doppel-K.O.-System</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tournamentLocation">Ort</label>
+                            <input type="text" id="tournamentLocation">
+                        </div>
+                        <div class="form-group">
+                            <label for="participantSelection">Teilnehmer auswählen</label>
+                            <div style="border: 1px solid #ddd; max-height: 200px; overflow-y: auto; padding: 10px;" id="participantSelectionContainer">
+                                <!-- Wird dynamisch gefüllt -->
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="submit" class="btn-primary">Turnier erstellen</button>
+                            <button type="button" class="btn-danger" id="cancelTournamentForm">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h2>Geplante Turniere</h2>
+                    <table id="plannedTournaments">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Datum</th>
+                                <th>Ort</th>
+                                <th>Teilnehmer</th>
+                                <th>Status</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Wird dynamisch gefüllt -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Turnierdurchführung -->
+            <div id="management" class="tab-content">
+                <h1>Turnierdurchführung</h1>
+                
+                <div id="noActiveTournament" class="card">
+                    <h2>Kein aktives Turnier</h2>
+                    <p>Bitte wähle ein Turnier aus der Liste der geplanten Turniere, um mit der Durchführung zu beginnen.</p>
+                    <button class="btn-primary" onclick="switchTab('tournaments')">Zur Turnierplanung</button>
+                </div>
+                
+                <div id="activeTournamentManagement" class="hidden">
+                    <div class="card">
+                        <div class="tournament-info">
+                            <div>
+                                <h2 id="tournamentTitle">Turniername</h2>
+                                <p id="tournamentDetails">Datum: - | Ort: - | Teilnehmer: -</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p id="tournamentStatus">Status: In Vorbereitung</p>
+                                <button class="btn-primary" id="startTournamentBtn">Turnier starten</button>
+                                <button class="btn-warning" id="completeTournamentBtn" style="display: none;">Turnier abschließen</button>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress" id="tournamentProgress" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Turnierbaum</h3>
+                        <div id="tournamentTree">
+                            <!-- Wird dynamisch gefüllt -->
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Aktuelle Runde</h3>
+                        <table id="currentMatches">
+                            <thead>
+                                <tr>
+                                    <th>Spieler 1</th>
+                                    <th>Ergebnis</th>
+                                    <th>Spieler 2</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Wird dynamisch gefüllt -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Match Result Modal -->
+                <div id="matchResultModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;">
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; width: 400px;">
+                        <h2>Spielergebnis eintragen</h2>
+                        <form id="matchResultForm">
+                            <input type="hidden" id="matchId">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                                <span id="player1Name" style="flex: 1;">Spieler 1</span>
+                                <input type="number" id="player1Score" min="0" required style="width: 60px;">
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span id="player2Name" style="flex: 1;">Spieler 2</span>
+                                <input type="number" id="player2Score" min="0" required style="width: 60px;">
+                            </div>
+                            <div class="btn-group" style="margin-top: 20px;">
+                                <button type="submit" class="btn-primary">Speichern</button>
+                                <button type="button" class="btn-danger" id="cancelMatchResult">Abbrechen</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ergebnisse und Statistiken -->
+            <div id="results" class="tab-content">
+                <div class="tab-header">
+                    <h1>Ergebnisse & Statistiken</h1>
+                    <div class="btn-group">
+                        <button class="btn-secondary" id="exportResultsPDF">Als PDF exportieren</button>
+                        <button class="btn-secondary" id="exportResultsExcel">Als Excel exportieren</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Turnier auswählen</h2>
+                    <select id="tournamentSelect">
+                        <option value="">Bitte wählen...</option>
+                        <!-- Wird dynamisch gefüllt -->
+                    </select>
+                </div>
+                
+                <div id="resultContent" class="hidden">
+                    <div class="card">
+                        <h2>Endplatzierungen</h2>
+                        <table id="finalResults">
+                            <thead>
+                                <tr>
+                                    <th>Platz</th>
+                                    <th>Name</th>
+                                    <th>Gruppe</th>
+                                    <th>Gewonnen</th>
+                                    <th>Verloren</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Wird dynamisch gefüllt -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Turnier-Statistik</h2>
+                        <div style="display: flex; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 300px;">
+                                <h3>Spielerstatistik</h3>
+                                <div class="chart-container" id="playerStatsChart">
+                                    <p>Diagramm wird geladen...</p>
+                                </div>
+                            </div>
+                            <div style="flex: 1; min-width: 300px;">
+                                <h3>Gruppenvergleich</h3>
+                                <div class="chart-container" id="groupStatsChart">
+                                    <p>Diagramm wird geladen...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>Alle Spiele</h2>
+                        <table id="allMatches">
+                            <thead>
+                                <tr>
+                                    <th>Runde</th>
+                                    <th>Spieler 1</th>
+                                    <th>Ergebnis</th>
+                                    <th>Spieler 2</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Wird dynamisch gefüllt -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datenmodell
+        let participants = [
+            { id: 1, name: "Max Mustermann", email: "max@example.com", phone: "0123456789", group: "Fortgeschritten" },
+            { id: 2, name: "Anna Schmidt", email: "anna@example.com", phone: "0123456788", group: "Anfänger" },
+            { id: 3, name: "Thomas Müller", email: "thomas@example.com", phone: "0123456787", group: "Profi" },
+            { id: 4, name: "Lisa Weber", email: "lisa@example.com", phone: "0123456786", group: "Fortgeschritten" },
+            { id: 5, name: "Michael Koch", email: "michael@example.com", phone: "0123456785", group: "Anfänger" },
+            { id: 6, name: "Sarah Meyer", email: "sarah@example.com", phone: "0123456784", group: "Profi" },
+            { id: 7, name: "Daniel Becker", email: "daniel@example.com", phone: "0123456783", group: "Fortgeschritten" },
+            { id: 8, name: "Julia Fischer", email: "julia@example.com", phone: "0123456782", group: "Anfänger" }
+        ];
+        
+        let tournaments = [
+            {
+                id: 1,
+                name: "Frühlingsturnier 2025",
+                date: "2025-05-15",
+                location: "Sporthalle Nord",
+                type: "knockout",
+                participants: [1, 2, 3, 4, 5, 6, 7, 8],
+                status: "planned", // planned, active, completed
+                matches: [],
+                rounds: 0,
+                currentRound: 0,
+                progress: 0
+            }
+        ];
+        
+        let activeTournament = null;
+        
+        // Helfer-Funktionen
+        function generateId() {
+            return Math.floor(Math.random() * 1000000);
+        }
+        
+        function findParticipantById(id) {
+            return participants.find(p => p.id === id);
+        }
+        
+        function findTournamentById(id) {
+            return tournaments.find(t => t.id === id);
+        }
+        
+        // Tab-Steuerung
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('#menu li').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`#menu li[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Spezielle Aktionen bei bestimmten Tabs
+            if (tabId === 'participants') {
+                loadParticipantsTable();
+            } else if (tabId === 'tournaments') {
+                loadPlannedTournaments();
+            } else if (tabId === 'management') {
+                loadTournamentManagement();
+            } else if (tabId === 'results') {
+                loadTournamentSelect();
+            } else if (tabId === 'dashboard') {
+                updateDashboard();
+            }
+        }
+        
+        // Teilnehmerverwaltung
+        function loadParticipantsTable() {
+            const searchTerm = document.getElementById('participantSearch').value.toLowerCase();
+            const groupFilter = document.getElementById('groupFilter').value;
+            
+            const filteredParticipants = participants.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                     p.email.toLowerCase().includes(searchTerm);
+                const matchesGroup = !groupFilter || p.group === groupFilter;
+                return matchesSearch && matchesGroup;
+            });
+            
+            const tbody = document.querySelector('#participantsTable tbody');
+            tbody.innerHTML = '';
+            
+            filteredParticipants.forEach(participant => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${participant.name}</td>
+                    <td>${participant.email}</td>
+                    <td>${participant.phone}</td>
+                    <td>${participant.group || '-'}</td>
+                    <td class="actions">
+                        <button class="btn-primary" onclick="editParticipant(${participant.id})">Bearbeiten</button>
+                        <button class="btn-danger" onclick="deleteParticipant(${participant.id})">Löschen</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function showAddParticipantForm() {
+            document.getElementById('participantFormTitle').textContent = 'Teilnehmer hinzufügen';
+            document.getElementById('participantId').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('group').value = '';
+            document.getElementById('participantForm').classList.remove('hidden');
+        }
+        
+        

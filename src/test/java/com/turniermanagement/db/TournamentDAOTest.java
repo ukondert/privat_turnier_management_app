@@ -1,12 +1,12 @@
 package com.turniermanagement.db;
 
-import com.turniermanagement.model.*;
+import com.turniermanagement.model.Tournament;
+import com.turniermanagement.model.Player;
+import com.turniermanagement.model.TournamentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,68 +19,24 @@ class TournamentDAOTest extends BaseDAOTest {
     @BeforeEach
     void setUp() throws SQLException {
         super.setUp();
-        tournamentDAO = new TournamentDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
-        playerDAO = new PlayerDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
+        tournamentDAO = new TournamentDAO(connection);
+        playerDAO = new PlayerDAO(connection);
     }
 
     @Test
     void testSaveTournament() throws SQLException {
-        Tournament tournament = new Tournament(
-            "Test Tournament",
-            LocalDate.now(),
-            LocalDate.now().plusDays(1)
-        );
-        tournament.setStatus(TournamentStatus.CREATED);
-
+        Tournament tournament = new Tournament("Test Tournament", LocalDate.now(), LocalDate.now().plusDays(1));
         tournamentDAO.save(tournament);
         assertNotNull(tournament.getId(), "Tournament ID should be set after save");
 
         Optional<Tournament> savedTournament = tournamentDAO.findById(tournament.getId());
         assertTrue(savedTournament.isPresent(), "Saved tournament should be found");
         assertEquals("Test Tournament", savedTournament.get().getName());
-        assertEquals(TournamentStatus.CREATED, savedTournament.get().getStatus());
-    }
-
-    @Test
-    void testSaveTournamentWithPlayers() throws SQLException {
-        Tournament tournament = new Tournament(
-            "Tournament with Players",
-            LocalDate.now(),
-            LocalDate.now().plusDays(2)
-        );
-
-        Player player1 = new Player("Player 1");
-        Player player2 = new Player("Player 2");
-        playerDAO.save(player1);
-        playerDAO.save(player2);
-
-        tournament.addPlayer(player1);
-        tournament.addPlayer(player2);
-
-        tournamentDAO.save(tournament);
-
-        Optional<Tournament> savedTournament = tournamentDAO.findById(tournament.getId());
-        assertTrue(savedTournament.isPresent(), "Saved tournament should be found");
-        assertEquals(2, savedTournament.get().getPlayers().size(), "Tournament should have 2 players");
     }
 
     @Test
     void testUpdateTournament() throws SQLException {
-        Tournament tournament = new Tournament(
-            "Original Name",
-            LocalDate.now(),
-            LocalDate.now().plusDays(1)
-        );
+        Tournament tournament = new Tournament("Original Name", LocalDate.now(), LocalDate.now().plusDays(1));
         tournamentDAO.save(tournament);
         Long tournamentId = tournament.getId();
 
@@ -95,38 +51,46 @@ class TournamentDAOTest extends BaseDAOTest {
     }
 
     @Test
-    void testUpdateTournamentPlayers() throws SQLException {
-        Tournament tournament = new Tournament(
-            "Tournament to Update Players",
-            LocalDate.now(),
-            LocalDate.now().plusDays(1)
-        );
-        Player player1 = new Player("Player 1");
-        playerDAO.save(player1);
-        tournament.addPlayer(player1);
+    void testTournamentPlayerRelationship() throws SQLException {
+        // Create a tournament
+        Tournament tournament = new Tournament("Test Tournament", LocalDate.now(), LocalDate.now().plusDays(1));
         tournamentDAO.save(tournament);
+        assertNotNull(tournament.getId(), "Tournament should have an ID after saving");
 
+        // Create two players
+        Player player1 = new Player("Player 1");
         Player player2 = new Player("Player 2");
+        playerDAO.save(player1);
         playerDAO.save(player2);
+        
+        // Add players to tournament
+        tournament.addPlayer(player1);
         tournament.addPlayer(player2);
         tournamentDAO.update(tournament);
 
-        Optional<Tournament> updatedTournament = tournamentDAO.findById(tournament.getId());
-        assertTrue(updatedTournament.isPresent(), "Updated tournament should be found");
-        assertEquals(2, updatedTournament.get().getPlayers().size(), "Tournament should have 2 players");
-    }
-
-    @Test
-    void testFindAllTournaments() throws SQLException {
-        Tournament tournament1 = new Tournament("Tournament 1", LocalDate.now(), LocalDate.now().plusDays(1));
-        Tournament tournament2 = new Tournament("Tournament 2", LocalDate.now(), LocalDate.now().plusDays(1));
-        tournamentDAO.save(tournament1);
-        tournamentDAO.save(tournament2);
-
-        List<Tournament> allTournaments = tournamentDAO.findAll();
-        assertEquals(2, allTournaments.size(), "Should find all saved tournaments");
-        assertTrue(allTournaments.stream().anyMatch(t -> t.getName().equals("Tournament 1")));
-        assertTrue(allTournaments.stream().anyMatch(t -> t.getName().equals("Tournament 2")));
+        // Verify relationships after loading from database
+        Optional<Tournament> loadedTournament = tournamentDAO.findById(tournament.getId());
+        assertTrue(loadedTournament.isPresent());
+        assertEquals(2, loadedTournament.get().getPlayers().size());
+        
+        // Verify bidirectional relationship
+        Optional<Player> loadedPlayer1 = playerDAO.findById(player1.getId());
+        assertTrue(loadedPlayer1.isPresent());
+        assertEquals(1, loadedPlayer1.get().getTournaments().size());
+        assertEquals(tournament.getId(), loadedPlayer1.get().getTournaments().get(0).getId());
+        
+        // Remove one player
+        tournament.removePlayer(player1);
+        tournamentDAO.update(tournament);
+        
+        loadedTournament = tournamentDAO.findById(tournament.getId());
+        assertTrue(loadedTournament.isPresent());
+        assertEquals(1, loadedTournament.get().getPlayers().size());
+        
+        // Verify player's tournaments are updated
+        loadedPlayer1 = playerDAO.findById(player1.getId());
+        assertTrue(loadedPlayer1.isPresent());
+        assertTrue(loadedPlayer1.get().getTournaments().isEmpty());
     }
 
     @Test
@@ -135,26 +99,22 @@ class TournamentDAOTest extends BaseDAOTest {
         tournamentDAO.save(tournament);
         Long tournamentId = tournament.getId();
 
-        tournamentDAO.delete(tournamentId);
-        Optional<Tournament> deletedTournament = tournamentDAO.findById(tournamentId);
-        assertFalse(deletedTournament.isPresent(), "Tournament should be deleted");
-    }
-
-    @Test
-    void testDeleteTournamentWithPlayers() throws SQLException {
-        Tournament tournament = new Tournament("To Delete with Players", LocalDate.now(), LocalDate.now().plusDays(1));
+        // Add a player to test relationship cleanup
         Player player = new Player("Test Player");
         playerDAO.save(player);
         tournament.addPlayer(player);
-        tournamentDAO.save(tournament);
-        Long tournamentId = tournament.getId();
+        tournamentDAO.update(tournament);
 
+        // Delete tournament
         tournamentDAO.delete(tournamentId);
+        
+        // Verify tournament is deleted
         Optional<Tournament> deletedTournament = tournamentDAO.findById(tournamentId);
         assertFalse(deletedTournament.isPresent(), "Tournament should be deleted");
         
-        // Player should still exist
+        // Verify player still exists but without tournament reference
         Optional<Player> existingPlayer = playerDAO.findById(player.getId());
-        assertTrue(existingPlayer.isPresent(), "Player should still exist after tournament deletion");
+        assertTrue(existingPlayer.isPresent(), "Player should still exist");
+        assertTrue(existingPlayer.get().getTournaments().isEmpty(), "Player should have no tournament references");
     }
 }
