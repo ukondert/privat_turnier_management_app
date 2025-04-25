@@ -1,0 +1,14 @@
+{
+    "prompts": [
+      {
+        "name": "Tournament App Development",
+        "description": "Guidelines for developing the tournament management app",
+        "prompt": "This project is a JavaFX tournament management application with knockout system support. Follow these conventions: use MVC pattern, implement data models clearly, ensure responsive UI design."
+      }
+      {
+        "name": "Implementation of Tournament Management",
+        "description": "Tasklist for implementing the tournament management features.",
+        "prompt": "Use the CONTEXT.md file (containing the tasks) for implementing the tasks step by step assisted by the user"
+      }
+    ]
+  }

@@ -1,0 +1,17 @@
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\PrimaryController.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\Tournament.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\service\TournamentService.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\TournamentStatus.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\service\RoundService.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\Player.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\module-info.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\db\TournamentDAO.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\MatchStatus.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\service\MatchService.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\db\MatchDAO.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\db\DatabaseConnection.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\Match.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\db\PlayerDAO.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\App.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\db\RoundDAO.java
+C:\SW-Dev\Git\ukondert\privat_turnier_management_app\src\main\java\com\turniermanagement\model\Round.java
