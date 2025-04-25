@@ -106,16 +106,35 @@ public class DatabaseConnection {
 
     private void createTables() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            // Player Tabelle
+            // Player Tabelle (ohne Ranking-Feld in der Haupttabelle)
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
-                    ranking INTEGER DEFAULT 0,
                     games_won INTEGER DEFAULT 0,
                     games_lost INTEGER DEFAULT 0
                 )
             """);
+
+            // Prüfe, ob das alte Ranking-Feld existiert und migriere die Daten wenn nötig
+            try {
+                ResultSet rs = connection.getMetaData().getColumns(null, null, "player", "ranking");
+                if (rs.next()) {
+                    // Das Ranking-Feld existiert noch, wir müssen es migrieren
+                    migrateRankingData();
+                    
+                    // Entferne das Ranking-Feld aus der Player-Tabelle
+                    try {
+                        stmt.execute("ALTER TABLE player DROP COLUMN ranking");
+                    } catch (SQLException e) {
+                        // SQLite unterstützt DROP COLUMN nicht direkt; wir müssten die Tabelle neu erstellen
+                        // In diesem Fall ignorieren wir das alte Feld einfach
+                        System.out.println("Konnte das Ranking-Feld nicht entfernen. Es wird ignoriert.");
+                    }
+                }
+            } catch (SQLException e) {
+                // Ignoriere Fehler bei der Metadatenabfrage
+            }
 
             // Tournament Tabelle
             stmt.execute("""
@@ -157,16 +176,55 @@ public class DatabaseConnection {
                 )
             """);
 
-            // Tournament_Player Verbindungstabelle
+            // Tournament_Player Verbindungstabelle mit Ranking als Beziehungsattribut
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS tournament_player (
                     tournament_id INTEGER,
                     player_id INTEGER,
+                    ranking INTEGER DEFAULT 0,
                     PRIMARY KEY (tournament_id, player_id),
                     FOREIGN KEY (tournament_id) REFERENCES tournament(id),
                     FOREIGN KEY (player_id) REFERENCES player(id)
                 )
             """);
+            
+            // Prüfe, ob das Ranking-Feld bereits in tournament_player existiert
+            try {
+                ResultSet rs = connection.getMetaData().getColumns(null, null, "tournament_player", "ranking");
+                if (!rs.next()) {
+                    // Das Ranking-Feld existiert noch nicht, wir fügen es hinzu
+                    try {
+                        stmt.execute("ALTER TABLE tournament_player ADD COLUMN ranking INTEGER DEFAULT 0");
+                    } catch (SQLException e) {
+                        System.out.println("Fehler beim Hinzufügen des Ranking-Felds: " + e.getMessage());
+                    }
+                }
+            } catch (SQLException e) {
+                // Ignoriere Fehler bei der Metadatenabfrage
+            }
+        }
+    }
+    
+    private void migrateRankingData() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT p.id, p.ranking, t.id as tournament_id FROM player p JOIN tournament_player tp ON p.id = tp.player_id JOIN tournament t ON tp.tournament_id = t.id");
+            
+            while (rs.next()) {
+                long playerId = rs.getLong(1);
+                int ranking = rs.getInt(2);
+                long tournamentId = rs.getLong(3);
+                
+                // Aktualisiere die Beziehungstabelle mit dem Ranking-Wert
+                try (PreparedStatement pstmt = connection.prepareStatement(
+                        "UPDATE tournament_player SET ranking = ? WHERE player_id = ? AND tournament_id = ?")) {
+                    pstmt.setInt(1, ranking);
+                    pstmt.setLong(2, playerId);
+                    pstmt.setLong(3, tournamentId);
+                    pstmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Fehler bei der Migration der Ranking-Daten: " + e.getMessage());
         }
     }
 }

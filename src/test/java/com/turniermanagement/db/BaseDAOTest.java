@@ -30,12 +30,11 @@ public abstract class BaseDAOTest {
 
     private void createTables() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            // Player Tabelle
+            // Player Tabelle (ohne Ranking Feld)
             stmt.execute("""
                 CREATE TABLE player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
-                    ranking INTEGER DEFAULT 0,
                     games_won INTEGER DEFAULT 0,
                     games_lost INTEGER DEFAULT 0
                 )
@@ -81,11 +80,12 @@ public abstract class BaseDAOTest {
                 )
             """);
 
-            // Tournament_Player Verbindungstabelle
+            // Tournament_Player Verbindungstabelle mit Ranking als Beziehungsattribut
             stmt.execute("""
                 CREATE TABLE tournament_player (
                     tournament_id INTEGER,
                     player_id INTEGER,
+                    ranking INTEGER DEFAULT 0,
                     PRIMARY KEY (tournament_id, player_id),
                     FOREIGN KEY (tournament_id) REFERENCES tournament(id),
                     FOREIGN KEY (player_id) REFERENCES player(id)

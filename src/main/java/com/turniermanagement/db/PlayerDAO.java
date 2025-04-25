@@ -30,12 +30,11 @@ public class PlayerDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
-            String sql = "INSERT INTO player (name, ranking, games_won, games_lost) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO player (name, games_won, games_lost) VALUES (?, ?, ?)";
             try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setString(1, player.getName());
-                pstmt.setInt(2, player.getRanking());
-                pstmt.setInt(3, player.getGamesWon());
-                pstmt.setInt(4, player.getGamesLost());
+                pstmt.setInt(2, player.getGamesWon());
+                pstmt.setInt(3, player.getGamesLost());
                 pstmt.executeUpdate();
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -45,7 +44,7 @@ public class PlayerDAO {
                 }
             }
 
-            // Speichere Tournament-Beziehungen
+            // Speichere Tournament-Beziehungen und Rankings
             if (player.getTournaments() != null && !player.getTournaments().isEmpty()) {
                 saveTournamentRelations(player, connection);
             }
@@ -60,12 +59,13 @@ public class PlayerDAO {
     }
 
     private void saveTournamentRelations(Player player, Connection connection) throws SQLException {
-        String sql = "INSERT INTO tournament_player (player_id, tournament_id) VALUES (?, ?)";
+        String sql = "INSERT INTO tournament_player (player_id, tournament_id, ranking) VALUES (?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             for (Tournament tournament : player.getTournaments()) {
                 if (tournament.getId() != null) {
                     pstmt.setLong(1, player.getId());
                     pstmt.setLong(2, tournament.getId());
+                    pstmt.setInt(3, player.getRanking(tournament));
                     pstmt.addBatch();
                 }
             }
@@ -77,17 +77,16 @@ public class PlayerDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
-            String sql = "UPDATE player SET name = ?, ranking = ?, games_won = ?, games_lost = ? WHERE id = ?";
+            String sql = "UPDATE player SET name = ?, games_won = ?, games_lost = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, player.getName());
-                pstmt.setInt(2, player.getRanking());
-                pstmt.setInt(3, player.getGamesWon());
-                pstmt.setInt(4, player.getGamesLost());
-                pstmt.setLong(5, player.getId());
+                pstmt.setInt(2, player.getGamesWon());
+                pstmt.setInt(3, player.getGamesLost());
+                pstmt.setLong(4, player.getId());
                 pstmt.executeUpdate();
             }
 
-            // Aktualisiere Tournament-Beziehungen
+            // Aktualisiere Tournament-Beziehungen und Rankings
             updateTournamentRelations(player, connection);
 
             connection.commit();
@@ -115,7 +114,7 @@ public class PlayerDAO {
 
     public Optional<Player> findById(Long id) throws SQLException {
         String sql = "SELECT p.*, t.id as tournament_id, t.name as tournament_name, " +
-                    "t.start_date, t.end_date, t.status " +
+                    "t.start_date, t.end_date, t.status, tp.ranking " +
                     "FROM player p " +
                     "LEFT JOIN tournament_player tp ON p.id = tp.player_id " +
                     "LEFT JOIN tournament t ON tp.tournament_id = t.id " +
@@ -134,6 +133,10 @@ public class PlayerDAO {
                 if (!rs.wasNull()) {
                     Tournament tournament = createTournamentFromResultSet(rs);
                     player.getTournaments().add(tournament);
+                    
+                    // Setze das Ranking für dieses Tournament
+                    int ranking = rs.getInt("ranking");
+                    player.setRanking(tournament, ranking);
                 }
             }
             return Optional.ofNullable(player);
@@ -153,7 +156,7 @@ public class PlayerDAO {
     public List<Player> findAll() throws SQLException {
         List<Player> players = new ArrayList<>();
         String sql = "SELECT p.*, t.id as tournament_id, t.name as tournament_name, " +
-                    "t.start_date, t.end_date, t.status " +
+                    "t.start_date, t.end_date, t.status, tp.ranking " +
                     "FROM player p " +
                     "LEFT JOIN tournament_player tp ON p.id = tp.player_id " +
                     "LEFT JOIN tournament t ON tp.tournament_id = t.id";
@@ -176,6 +179,10 @@ public class PlayerDAO {
                 if (!rs.wasNull()) {
                     Tournament tournament = createTournamentFromResultSet(rs);
                     currentPlayer.getTournaments().add(tournament);
+                    
+                    // Setze das Ranking für dieses Tournament
+                    int ranking = rs.getInt("ranking");
+                    currentPlayer.setRanking(tournament, ranking);
                 }
             }
         }
@@ -213,9 +220,43 @@ public class PlayerDAO {
         Player player = new Player();
         player.setId(rs.getLong("id"));
         player.setName(rs.getString("name"));
-        player.setRanking(rs.getInt("ranking"));
         player.setGamesWon(rs.getInt("games_won"));
         player.setGamesLost(rs.getInt("games_lost"));
         return player;
+    }
+    
+    public void updatePlayerRanking(Player player, Tournament tournament, int ranking) throws SQLException {
+        Connection connection = getConnection();
+        connection.setAutoCommit(false);
+        try {
+            String sql = "UPDATE tournament_player SET ranking = ? WHERE player_id = ? AND tournament_id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setInt(1, ranking);
+                pstmt.setLong(2, player.getId());
+                pstmt.setLong(3, tournament.getId());
+                int rowsAffected = pstmt.executeUpdate();
+                
+                // Wenn keine Zeile aktualisiert wurde, füge eine neue hinzu
+                if (rowsAffected == 0) {
+                    String insertSql = "INSERT INTO tournament_player (player_id, tournament_id, ranking) VALUES (?, ?, ?)";
+                    try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
+                        insertStmt.setLong(1, player.getId());
+                        insertStmt.setLong(2, tournament.getId());
+                        insertStmt.setInt(3, ranking);
+                        insertStmt.executeUpdate();
+                    }
+                }
+            }
+            connection.commit();
+            
+            // Aktualisiere das Objekt
+            player.setRanking(tournament, ranking);
+            
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
     }
 }

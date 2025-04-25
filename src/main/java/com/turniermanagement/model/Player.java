@@ -1,19 +1,21 @@
 package com.turniermanagement.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Player {
     private Long id;
     private String name;
-    private int ranking;
+    private Map<Tournament, Integer> tournamentRankings;
     private int gamesWon;
     private int gamesLost;
     private List<Tournament> tournaments;
 
     public Player() {
         this.tournaments = new ArrayList<>();
-        this.ranking = 0;
+        this.tournamentRankings = new HashMap<>();
         this.gamesWon = 0;
         this.gamesLost = 0;
     }
@@ -28,8 +30,32 @@ public class Player {
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public int getRanking() { return ranking; }
-    public void setRanking(int ranking) { this.ranking = ranking; }
+    
+    // Neue Methoden für tournamentRankings
+    public Map<Tournament, Integer> getTournamentRankings() { return tournamentRankings; }
+    public void setTournamentRankings(Map<Tournament, Integer> tournamentRankings) { this.tournamentRankings = tournamentRankings; }
+    
+    public Integer getRanking(Tournament tournament) {
+        return tournamentRankings.getOrDefault(tournament, 0);
+    }
+    
+    public void setRanking(Tournament tournament, int ranking) {
+        tournamentRankings.put(tournament, ranking);
+    }
+    
+    // Alte Ranking-Methoden für Abwärtskompatibilität 
+    @Deprecated
+    public int getRanking() { 
+        // Gibt das höchste Ranking zurück, falls vorhanden
+        return tournamentRankings.values().stream().max(Integer::compare).orElse(0); 
+    }
+    
+    @Deprecated
+    public void setRanking(int ranking) { 
+        // Setzt das Ranking für alle Turniere (nicht empfohlen)
+        tournaments.forEach(tournament -> tournamentRankings.put(tournament, ranking));
+    }
+    
     public int getGamesWon() { return gamesWon; }
     public void setGamesWon(int gamesWon) { this.gamesWon = gamesWon; }
     public int getGamesLost() { return gamesLost; }
@@ -41,12 +67,16 @@ public class Player {
         if (!tournaments.contains(tournament)) {
             tournaments.add(tournament);
             tournament.addPlayer(this);
+            // Standardmäßig Ranking auf 0 setzen
+            tournamentRankings.put(tournament, 0);
         }
     }
 
     public void removeTournament(Tournament tournament) {
         if (tournaments.remove(tournament)) {
             tournament.removePlayer(this);
+            // Ranking entfernen
+            tournamentRankings.remove(tournament);
         }
     }
 }

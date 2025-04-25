@@ -27,7 +27,6 @@ class PlayerDAOTest extends BaseDAOTest {
     @Test
     void testSavePlayer() throws SQLException {
         Player player = new Player("Test Player");
-        player.setRanking(100);
         player.setGamesWon(5);
         player.setGamesLost(2);
 
@@ -37,7 +36,6 @@ class PlayerDAOTest extends BaseDAOTest {
         Optional<Player> savedPlayer = playerDAO.findById(player.getId());
         assertTrue(savedPlayer.isPresent(), "Saved player should be found");
         assertEquals("Test Player", savedPlayer.get().getName());
-        assertEquals(100, savedPlayer.get().getRanking());
         assertEquals(5, savedPlayer.get().getGamesWon());
         assertEquals(2, savedPlayer.get().getGamesLost());
     }
@@ -49,13 +47,11 @@ class PlayerDAOTest extends BaseDAOTest {
         Long playerId = player.getId();
 
         player.setName("Updated Name");
-        player.setRanking(200);
         playerDAO.update(player);
 
         Optional<Player> updatedPlayer = playerDAO.findById(playerId);
         assertTrue(updatedPlayer.isPresent(), "Updated player should be found");
         assertEquals("Updated Name", updatedPlayer.get().getName());
-        assertEquals(200, updatedPlayer.get().getRanking());
     }
 
     @Test
@@ -118,5 +114,40 @@ class PlayerDAOTest extends BaseDAOTest {
         loadedPlayer = playerDAO.findById(player.getId());
         assertTrue(loadedPlayer.isPresent());
         assertEquals(1, loadedPlayer.get().getTournaments().size());
+    }
+    
+    @Test
+    void testPlayerRankingInTournament() throws SQLException {
+        // Create a player
+        Player player = new Player("Ranking Test Player");
+        playerDAO.save(player);
+        
+        // Create two tournaments
+        Tournament tournament1 = new Tournament("Tournament 1", LocalDate.now(), LocalDate.now().plusDays(1));
+        Tournament tournament2 = new Tournament("Tournament 2", LocalDate.now(), LocalDate.now().plusDays(2));
+        tournamentDAO.save(tournament1);
+        tournamentDAO.save(tournament2);
+        
+        // Add tournaments to player with different rankings
+        player.addTournament(tournament1);
+        player.addTournament(tournament2);
+        player.setRanking(tournament1, 10);
+        player.setRanking(tournament2, 20);
+        playerDAO.update(player);
+        
+        // Verify rankings after loading from database
+        Optional<Player> loadedPlayer = playerDAO.findById(player.getId());
+        assertTrue(loadedPlayer.isPresent());
+        assertEquals(2, loadedPlayer.get().getTournaments().size());
+        assertEquals(10, loadedPlayer.get().getRanking(tournament1));
+        assertEquals(20, loadedPlayer.get().getRanking(tournament2));
+        
+        // Test updating a specific ranking
+        playerDAO.updatePlayerRanking(player, tournament1, 15);
+        
+        loadedPlayer = playerDAO.findById(player.getId());
+        assertTrue(loadedPlayer.isPresent());
+        assertEquals(15, loadedPlayer.get().getRanking(tournament1));
+        assertEquals(20, loadedPlayer.get().getRanking(tournament2));
     }
 }
