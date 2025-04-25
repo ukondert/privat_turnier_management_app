@@ -67,6 +67,12 @@ public class PlayerDAO {
                     pstmt.setLong(2, tournament.getId());
                     pstmt.setInt(3, player.getRanking(tournament));
                     pstmt.addBatch();
+                    
+                    // Ensure the tournament also has this player in its list
+                    // But only add to the DB relation, no circular method calls
+                    if (!tournament.getPlayers().contains(player)) {
+                        tournament.addPlayer(player);
+                    }
                 }
             }
             pstmt.executeBatch();
@@ -110,6 +116,7 @@ public class PlayerDAO {
         if (player.getTournaments() != null && !player.getTournaments().isEmpty()) {
             saveTournamentRelations(player, connection);
         }
+        connection.commit();
     }
 
     public Optional<Player> findById(Long id) throws SQLException {
@@ -193,6 +200,20 @@ public class PlayerDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
+            // First get the player to update tournament relationships
+            Optional<Player> player = findById(id);
+            
+            // Update tournaments to remove this player from their lists
+            if (player.isPresent()) {
+                // Get list of tournaments this player belongs to
+                List<Tournament> playerTournaments = new ArrayList<>(player.get().getTournaments());
+                
+                // Prepare Tournament objects for relationship removal
+                for (Tournament tournament : playerTournaments) {
+                    tournament.removePlayer(player.get());
+                }
+            }
+            
             // Lösche zuerst die Beziehungen
             String deleteRelationsSql = "DELETE FROM tournament_player WHERE player_id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(deleteRelationsSql)) {

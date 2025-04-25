@@ -3,6 +3,7 @@ package com.turniermanagement.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Tournament {
     private Long id;
@@ -36,15 +37,7 @@ public class Tournament {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public List<Player> getPlayers() { return players; }
-    public void setPlayers(List<Player> players) { 
-        this.players = players;
-        // Aktualisiere die bidirektionale Beziehung
-        for (Player player : players) {
-            if (!player.getTournaments().contains(this)) {
-                player.getTournaments().add(this);
-            }
-        }
-    }
+    public void setPlayers(List<Player> players) { this.players = players; }
     public List<Round> getRounds() { return rounds; }
     public void setRounds(List<Round> rounds) { this.rounds = rounds; }
     public TournamentStatus getStatus() { return status; }
@@ -53,23 +46,31 @@ public class Tournament {
     public void addPlayer(Player player) {
         if (!players.contains(player)) {
             players.add(player);
-            // Vermeide Endlosschleife durch Prüfung
-            if (!player.getTournaments().contains(this)) {
-                player.addTournament(this);
-            }
         }
     }
 
     public void removePlayer(Player player) {
-        if (players.remove(player)) {
-            // Vermeide Endlosschleife durch Prüfung
-            if (player.getTournaments().contains(this)) {
-                player.removeTournament(this);
-            }
-        }
+        players.remove(player);
     }
 
     public void addRound(Round round) {
         rounds.add(round);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tournament that = (Tournament) o;
+        return Objects.equals(id, that.id) &&
+               Objects.equals(name, that.name) &&
+               Objects.equals(startDate, that.startDate) &&
+               Objects.equals(endDate, that.endDate) &&
+               status == that.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, startDate, endDate, status);
     }
 }

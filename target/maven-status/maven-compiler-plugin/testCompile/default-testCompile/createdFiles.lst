@@ -1,8 +1,6 @@
 com\turniermanagement\service\RoundServiceTest.class
-com\turniermanagement\db\BaseDAOTest.class
-com\turniermanagement\db\TournamentDAOTest$1.class
 com\turniermanagement\service\TournamentServiceTest$1.class
-com\turniermanagement\db\TournamentDAOTest.class
 com\turniermanagement\service\RoundServiceTest$1.class
-com\turniermanagement\db\TournamentDAOTest$2.class
+com\turniermanagement\db\BaseDAOTest.class
+com\turniermanagement\db\TournamentDAOTest.class
 com\turniermanagement\service\TournamentServiceTest.class

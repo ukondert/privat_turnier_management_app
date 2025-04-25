@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Player {
     private Long id;
@@ -66,7 +67,6 @@ public class Player {
     public void addTournament(Tournament tournament) {
         if (!tournaments.contains(tournament)) {
             tournaments.add(tournament);
-            tournament.addPlayer(this);
             // Standardmäßig Ranking auf 0 setzen
             tournamentRankings.put(tournament, 0);
         }
@@ -74,9 +74,24 @@ public class Player {
 
     public void removeTournament(Tournament tournament) {
         if (tournaments.remove(tournament)) {
-            tournament.removePlayer(this);
             // Ranking entfernen
             tournamentRankings.remove(tournament);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        return gamesWon == player.gamesWon &&
+               gamesLost == player.gamesLost &&
+               Objects.equals(id, player.id) &&
+               Objects.equals(name, player.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, gamesWon, gamesLost);
     }
 }

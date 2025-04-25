@@ -1,5 +1,7 @@
 package com.turniermanagement.model;
 
+import java.util.Objects;
+
 public class Match {
     private Long id;
     private Player player1;
@@ -28,6 +30,25 @@ public class Match {
             this.winner = player2;
         }
         this.status = MatchStatus.COMPLETED;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Match match = (Match) o;
+        return scorePlayer1 == match.scorePlayer1 &&
+               scorePlayer2 == match.scorePlayer2 &&
+               Objects.equals(id, match.id) &&
+               Objects.equals(player1, match.player1) &&
+               Objects.equals(player2, match.player2) &&
+               Objects.equals(winner, match.winner) &&
+               status == match.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, player1, player2, winner, scorePlayer1, scorePlayer2, status);
     }
 
     // Getter und Setter

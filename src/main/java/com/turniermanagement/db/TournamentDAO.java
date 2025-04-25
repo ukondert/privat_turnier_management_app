@@ -70,6 +70,9 @@ public class TournamentDAO {
                     pstmt.setLong(1, tournament.getId());
                     pstmt.setLong(2, player.getId());
                     pstmt.addBatch();
+                    
+                    // Update player's tournament list
+                    player.addTournament(tournament);
                 }
             }
             pstmt.executeBatch();
@@ -103,11 +106,31 @@ public class TournamentDAO {
     }
 
     private void updatePlayerRelations(Tournament tournament, Connection connection) throws SQLException {
+        // Get current player associations before removing them
+        List<Player> previousPlayers = new ArrayList<>();
+        String selectSql = "SELECT player_id FROM tournament_player WHERE tournament_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(selectSql)) {
+            pstmt.setLong(1, tournament.getId());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Long playerId = rs.getLong("player_id");
+                    playerDAO.findById(playerId).ifPresent(previousPlayers::add);
+                }
+            }
+        }
+        
         // Lösche alte Beziehungen
         String deleteSql = "DELETE FROM tournament_player WHERE tournament_id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(deleteSql)) {
             pstmt.setLong(1, tournament.getId());
             pstmt.executeUpdate();
+        }
+
+        // Update player objects to remove this tournament from their list if they're no longer in it
+        for (Player player : previousPlayers) {
+            if (!tournament.getPlayers().contains(player)) {
+                player.removeTournament(tournament);
+            }
         }
 
         // Füge neue Beziehungen hinzu
@@ -118,7 +141,7 @@ public class TournamentDAO {
 
     public Optional<Tournament> findById(Long id) throws SQLException {
         String sql = "SELECT t.*, p.id as player_id, p.name as player_name, " +
-                    "p.ranking, p.games_won, p.games_lost " +
+                    "tp.ranking, p.games_won, p.games_lost " +
                     "FROM tournament t " +
                     "LEFT JOIN tournament_player tp ON t.id = tp.tournament_id " +
                     "LEFT JOIN player p ON tp.player_id = p.id " +
@@ -146,7 +169,7 @@ public class TournamentDAO {
     public List<Tournament> findAll() throws SQLException {
         List<Tournament> tournaments = new ArrayList<>();
         String sql = "SELECT t.*, p.id as player_id, p.name as player_name, " +
-                    "p.ranking, p.games_won, p.games_lost " +
+                    "tp.ranking, p.games_won, p.games_lost " +
                     "FROM tournament t " +
                     "LEFT JOIN tournament_player tp ON t.id = tp.tournament_id " +
                     "LEFT JOIN player p ON tp.player_id = p.id";
@@ -179,11 +202,21 @@ public class TournamentDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
+            // First get the tournament to manage player relationships
+            Optional<Tournament> tournament = findById(id);
+            
             // Lösche zuerst die Beziehungen
             String deleteRelationsSql = "DELETE FROM tournament_player WHERE tournament_id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(deleteRelationsSql)) {
                 pstmt.setLong(1, id);
                 pstmt.executeUpdate();
+            }
+
+            // Update tournament references in players
+            if (tournament.isPresent()) {
+                for (Player player : tournament.get().getPlayers()) {
+                    player.removeTournament(tournament.get());
+                }
             }
 
             // Dann lösche das Tournament

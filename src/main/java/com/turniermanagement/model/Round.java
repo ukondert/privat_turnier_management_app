@@ -2,6 +2,7 @@ package com.turniermanagement.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Round {
     private Long id;
@@ -25,6 +26,22 @@ public class Round {
 
     public boolean isRoundComplete() {
         return matches.stream().allMatch(match -> match.getStatus() == MatchStatus.COMPLETED);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Round round = (Round) o;
+        return roundNumber == round.roundNumber &&
+               completed == round.completed &&
+               Objects.equals(id, round.id) &&
+               Objects.equals(matches, round.matches);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, roundNumber, matches, completed);
     }
 
     // Getter und Setter
