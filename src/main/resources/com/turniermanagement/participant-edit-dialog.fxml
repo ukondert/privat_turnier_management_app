@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane stylesheets="@styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.turniermanagement.ParticipantEditDialogController">
+   <center>
+      <VBox spacing="15.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+         <children>
+            <Label fx:id="dialogTitleLabel" styleClass="headline" text="Teilnehmer bearbeiten">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <GridPane hgap="10.0" vgap="10.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="120.0" prefWidth="120.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="300.0" prefWidth="300.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="80.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="Name:" />
+                  <Label text="Spiele (G/V):" GridPane.rowIndex="1" />
+                  <Label text="Turniere:" GridPane.rowIndex="2" />
+                  <Label text="Platzierungen:" GridPane.rowIndex="3" />
+                  <TextField fx:id="nameField" GridPane.columnIndex="1" />
+                  <TextField fx:id="gamesField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <TextField fx:id="tournamentsField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <TextField fx:id="rankingsField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <CheckBox fx:id="gamesEditCheckbox" mnemonicParsing="false" text="Bearbeiten" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                  <CheckBox fx:id="tournamentsEditCheckbox" mnemonicParsing="false" text="Bearbeiten" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                  <CheckBox fx:id="rankingsEditCheckbox" mnemonicParsing="false" text="Bearbeiten" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+               </children>
+            </GridPane>
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+               <children>
+                  <Button fx:id="cancelButton" mnemonicParsing="false" styleClass="btn-secondary" text="Abbrechen" />
+                  <Button fx:id="saveButton" mnemonicParsing="false" styleClass="btn-primary" text="Speichern" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>

@@ -2,6 +2,17 @@
 
 Eine JavaFX-Anwendung zur Verwaltung von Turnieren und Spielerpaarungen.
 
+## Features
+
+### Teilnehmerverwaltung
+- **Teilnehmer anzeigen**: Alle Teilnehmer in einer übersichtlichen Tabelle anzeigen
+- **Teilnehmer hinzufügen**: Neue Teilnehmer mit Namen und automatisch generierten Statistiken erstellen
+- **Teilnehmer bearbeiten**: Bestehende Teilnehmer bearbeiten
+  - Standardmäßig kann nur der Name bearbeitet werden
+  - Weitere Felder (Spiele, Turniere, Platzierungen) können mittels Checkboxen zur Bearbeitung freigeschaltet werden
+- **Teilnehmer löschen**: Nicht mehr benötigte Teilnehmer aus dem System entfernen
+- **Teilnehmer suchen**: Schnelle Suche nach Teilnehmern über den Namen
+
 ## Datenmodell
 
 Das Datenmodell der Anwendung basiert auf einer SQLite-Datenbank mit folgenden Entitäten:
@@ -45,6 +56,7 @@ erDiagram
     TOURNAMENT_PLAYER {
         long tournament_id PK, FK
         long player_id PK, FK
+        int ranking
     }
     
     TOURNAMENT ||--o{ ROUND : "contains"
@@ -88,6 +100,11 @@ erDiagram
 - **score_player2**: Punktzahl Spieler 2
 - **status**: Status des Spiels (SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED)
 
+#### Tournament_Player (Turnier-Spieler-Zuordnung)
+- **tournament_id**: Zugehöriges Turnier
+- **player_id**: Zugehöriger Spieler
+- **ranking**: Turnierspezifische Ranglistenposition des Spielers
+
 ### Beziehungen
 
 - Ein **Tournament** kann mehrere **Rounds** haben
@@ -96,3 +113,4 @@ erDiagram
 - Ein **Match** kann einen **Winner** haben (optional)
 - Ein **Tournament** hat mehrere **Players** über die Verbindungstabelle TOURNAMENT_PLAYER
 - Ein **Player** kann an mehreren **Tournaments** teilnehmen
+- Die **ranking**-Eigenschaft in TOURNAMENT_PLAYER ermöglicht turnierspezifische Ranglisten für jeden Spieler
