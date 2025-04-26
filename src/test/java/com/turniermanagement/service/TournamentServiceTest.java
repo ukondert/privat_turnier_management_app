@@ -2,6 +2,7 @@ package com.turniermanagement.service;
 
 import com.turniermanagement.db.PlayerDAO;
 import com.turniermanagement.db.TournamentDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,22 +22,20 @@ class TournamentServiceTest {
     private TournamentDAO tournamentDAO;
     @Mock
     private PlayerDAO playerDAO;
+    @Mock
+    private DAOFactory mockDAOFactory;
 
     private TournamentService tournamentService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        tournamentService = new TournamentService() {
-            @Override
-            protected TournamentDAO getTournamentDAO() {
-                return tournamentDAO;
-            }
-            @Override
-            protected PlayerDAO getPlayerDAO() {
-                return playerDAO;
-            }
-        };
+        // Konfiguriere die Mock-DAOFactory, um die Mock-DAOs zurückzugeben
+        when(mockDAOFactory.createTournamentDAO()).thenReturn(tournamentDAO);
+        when(mockDAOFactory.createPlayerDAO()).thenReturn(playerDAO);
+        
+        // Instanziiere den Service mit der Mock-DAOFactory
+        tournamentService = new TournamentService(mockDAOFactory);
     }
 
     @Test

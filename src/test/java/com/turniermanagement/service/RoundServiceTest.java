@@ -1,6 +1,7 @@
 package com.turniermanagement.service;
 
 import com.turniermanagement.db.RoundDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,16 +20,26 @@ import static org.mockito.Mockito.*;
 class RoundServiceTest {
     @Mock
     private RoundDAO roundDAO;
+    
+    @Mock
+    private DAOFactory mockDAOFactory;
+    
+    @Mock
+    private MatchService matchService;
 
     private RoundService roundService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        roundService = new RoundService() {
+        when(mockDAOFactory.createRoundDAO()).thenReturn(roundDAO);
+        
+        // Erstelle den RoundService mit der Mock-DAOFactory
+        roundService = new RoundService(mockDAOFactory) {
+            // Überschreibe MatchService, um einen Mock zu verwenden
             @Override
-            protected RoundDAO getRoundDAO() {
-                return roundDAO;
+            protected MatchService getMatchService() {
+                return matchService;
             }
         };
     }

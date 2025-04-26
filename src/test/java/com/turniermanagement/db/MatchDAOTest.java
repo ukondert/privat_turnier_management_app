@@ -20,18 +20,8 @@ class MatchDAOTest extends BaseDAOTest {
     @BeforeEach
     void setUp() throws SQLException {
         super.setUp();
-        matchDAO = new MatchDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
-        playerDAO = new PlayerDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
+        matchDAO = daoFactory.createMatchDAO();
+        playerDAO = daoFactory.createPlayerDAO();
 
         // Testdaten vorbereiten
         player1 = new Player("Player 1");

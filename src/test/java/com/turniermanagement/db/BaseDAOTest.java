@@ -8,11 +8,16 @@ import java.sql.Statement;
 
 public abstract class BaseDAOTest {
     protected Connection connection;
+    protected TestDAOFactory daoFactory;
 
     @BeforeEach
     void setUp() throws SQLException {
         // In-Memory SQLite Datenbank für Tests
         connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+        
+        // Erstelle eine TestDAOFactory, die die Test-Connection verwendet
+        daoFactory = new TestDAOFactory(connection);
+        
         dropTablesIfExist();
         createTables();
     }

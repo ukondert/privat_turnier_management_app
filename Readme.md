@@ -13,6 +13,12 @@ Eine JavaFX-Anwendung zur Verwaltung von Turnieren und Spielerpaarungen.
 - **Teilnehmer löschen**: Nicht mehr benötigte Teilnehmer aus dem System entfernen
 - **Teilnehmer suchen**: Schnelle Suche nach Teilnehmern über den Namen
 
+## Technische Änderungen
+
+### 26.04.2025
+- Refactoring: DAOFactory-Konstruktor von `private` zu `protected` geändert, um Vererbung in TestDAOFactory zu ermöglichen
+- Testabdeckung verbessert durch Behebung von Kompilierungsfehlern in den Tests
+
 ## Datenmodell
 
 Das Datenmodell der Anwendung basiert auf einer SQLite-Datenbank mit folgenden Entitäten:

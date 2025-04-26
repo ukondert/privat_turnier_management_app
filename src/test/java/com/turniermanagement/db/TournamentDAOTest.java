@@ -19,8 +19,8 @@ class TournamentDAOTest extends BaseDAOTest {
     @BeforeEach
     void setUp() throws SQLException {
         super.setUp();
-        tournamentDAO = new TournamentDAO(connection);
-        playerDAO = new PlayerDAO(connection);
+        tournamentDAO = daoFactory.createTournamentDAO();
+        playerDAO = daoFactory.createPlayerDAO();
     }
 
     @Test

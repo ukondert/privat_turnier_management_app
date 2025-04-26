@@ -2,28 +2,45 @@ package com.turniermanagement.service;
 
 import com.turniermanagement.db.TournamentDAO;
 import com.turniermanagement.db.PlayerDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Service-Klasse für Tournament-bezogene Geschäftslogik.
+ * Nutzt das DAO-Pattern für die Datenpersistenz.
+ */
 public class TournamentService {
     private final TournamentDAO tournamentDAO;
     private final PlayerDAO playerDAO;
 
+    /**
+     * Erstellt einen neuen TournamentService mit Standard-DAOs.
+     */
     public TournamentService() {
-        this.tournamentDAO = getTournamentDAO();
-        this.playerDAO = getPlayerDAO();
+        this(DAOFactory.getInstance());
+    }
+    
+    /**
+     * Erstellt einen neuen TournamentService mit der angegebenen DAOFactory.
+     * @param daoFactory Die DAOFactory zum Erstellen von DAOs
+     */
+    public TournamentService(DAOFactory daoFactory) {
+        this.tournamentDAO = daoFactory.createTournamentDAO();
+        this.playerDAO = daoFactory.createPlayerDAO();
     }
 
-    protected TournamentDAO getTournamentDAO() {
-        return new TournamentDAO();
-    }
-
-    protected PlayerDAO getPlayerDAO() {
-        return new PlayerDAO();
-    }
-
+    /**
+     * Erstellt ein neues Turnier.
+     * @param name Name des Turniers
+     * @param startDate Startdatum
+     * @param endDate Enddatum
+     * @param players Liste der teilnehmenden Spieler
+     * @return Das erstellte Turnier
+     * @throws SQLException Bei Datenbankfehlern
+     */
     public Tournament createTournament(String name, LocalDate startDate, LocalDate endDate, List<Player> players) throws SQLException {
         Tournament tournament = new Tournament(name, startDate, endDate);
         tournament.setStatus(TournamentStatus.CREATED);

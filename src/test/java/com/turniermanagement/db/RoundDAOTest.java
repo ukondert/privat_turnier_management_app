@@ -21,24 +21,9 @@ class RoundDAOTest extends BaseDAOTest {
     @BeforeEach
     void setUp() throws SQLException {
         super.setUp();
-        roundDAO = new RoundDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
-        playerDAO = new PlayerDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
-        matchDAO = new MatchDAO() {
-            @Override
-            protected Connection getConnection() {
-                return connection;
-            }
-        };
+        roundDAO = daoFactory.createRoundDAO();
+        playerDAO = daoFactory.createPlayerDAO();
+        matchDAO = daoFactory.createMatchDAO();
 
         // Testdaten vorbereiten
         player1 = new Player("Player 1");

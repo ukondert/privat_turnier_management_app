@@ -1,24 +1,59 @@
 package com.turniermanagement.service;
 
 import com.turniermanagement.db.RoundDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.*;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service-Klasse für die Verwaltung von Runden.
+ * Nutzt das DAO-Pattern für die Datenpersistenz.
+ */
 public class RoundService {
     private final RoundDAO roundDAO;
     private final MatchService matchService;
 
+    /**
+     * Erstellt einen neuen RoundService mit Standard-DAOs.
+     */
     public RoundService() {
-        this.roundDAO = getRoundDAO();
-        this.matchService = new MatchService();
+        this(DAOFactory.getInstance());
+    }
+    
+    /**
+     * Erstellt einen neuen RoundService mit der angegebenen DAOFactory.
+     * @param daoFactory Die DAOFactory zum Erstellen von DAOs
+     */
+    public RoundService(DAOFactory daoFactory) {
+        this.roundDAO = daoFactory.createRoundDAO();
+        this.matchService = getMatchService(daoFactory);
+    }
+    
+    /**
+     * Erstellt eine MatchService-Instanz. Kann von Tests überschrieben werden.
+     * @param daoFactory Die DAOFactory zum Erstellen von DAOs
+     * @return Die MatchService-Instanz
+     */
+    protected MatchService getMatchService(DAOFactory daoFactory) {
+        return new MatchService(daoFactory);
+    }
+    
+    /**
+     * Gibt die MatchService-Instanz zurück. Wird für Tests verwendet.
+     * @return Die MatchService-Instanz
+     */
+    protected MatchService getMatchService() {
+        return matchService;
     }
 
-    protected RoundDAO getRoundDAO() {
-        return new RoundDAO();
-    }
-
+    /**
+     * Erstellt die nächste Runde für ein Turnier.
+     * @param tournament Das Turnier, für das eine neue Runde erstellt werden soll
+     * @return Die erstellte Runde
+     * @throws SQLException Bei Datenbankfehlern
+     */
     public Round createNextRound(Tournament tournament) throws SQLException {
         int nextRoundNumber = tournament.getRounds().size() + 1;
         Round round = new Round();

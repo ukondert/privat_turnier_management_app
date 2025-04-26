@@ -4,11 +4,31 @@
         "name": "Tournament App Development",
         "description": "Guidelines for developing the tournament management app",
         "prompt": "This project is a JavaFX tournament management application with knockout system support. Follow these conventions: use MVC pattern, implement data models clearly, ensure responsive UI design."
-      }
+      },
       {
         "name": "Implementation of Tournament Management",
         "description": "Tasklist for implementing the tournament management features.",
         "prompt": "Use the CONTEXT.md file (containing the tasks) for implementing the tasks step by step assisted by the user"
+      },
+      {
+        "name": "Implementation of Tournament Management",
+        "description": "Tasklist for implementing the tournament management features.",
+        "prompt": "Use the CONTEXT.md file (containing the tasks) for implementing the tasks step by step assisted by the user"
+      },
+      {
+        "name": "Git commit and push",
+        "description": "add change comments to the commit and push to the remote repository",
+        "prompt": "Please provide a detailed commit message for the changes made in the last commit. Include information about the files modified, the purpose of the changes, and any relevant context. After that, push the changes to the remote repository."
+      },
+      {
+        "name": "Git commit and push",
+        "description": "add change comments to the commit and push to the remote repository",
+        "prompt": "Please provide a detailed commit message for the changes made in the last commit. Include information about the files modified, the purpose of the changes, and any relevant context. After that, push the changes to the remote repository."
+      },
+      {
+        "name": "Update Readme",
+        "description": "Update the README file with the latest project information",
+        "prompt": "Please update the README file with the latest project information, including any new features, changes in functionality, and instructions for usage. Ensure that the documentation is clear and concise."      
       }
     ]
   }

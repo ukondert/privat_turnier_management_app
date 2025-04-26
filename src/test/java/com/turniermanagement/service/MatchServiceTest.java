@@ -1,6 +1,7 @@
 package com.turniermanagement.service;
 
 import com.turniermanagement.db.MatchDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,18 +19,19 @@ import static org.mockito.Mockito.*;
 class MatchServiceTest {
     @Mock
     private MatchDAO matchDAO;
+    
+    @Mock
+    private DAOFactory mockDAOFactory;
 
     private MatchService matchService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        matchService = new MatchService() {
-            @Override
-            protected MatchDAO getMatchDAO() {
-                return matchDAO;
-            }
-        };
+        when(mockDAOFactory.createMatchDAO()).thenReturn(matchDAO);
+        
+        // Instanziiere den Service mit der Mock-DAOFactory
+        matchService = new MatchService(mockDAOFactory);
     }
 
     @Test

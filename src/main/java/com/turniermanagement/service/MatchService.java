@@ -1,6 +1,7 @@
 package com.turniermanagement.service;
 
 import com.turniermanagement.db.MatchDAO;
+import com.turniermanagement.db.DAOFactory;
 import com.turniermanagement.model.Match;
 import com.turniermanagement.model.Player;
 import com.turniermanagement.model.MatchStatus;
@@ -9,17 +10,33 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Service-Klasse für die Verwaltung von Matches.
+ * Nutzt das DAO-Pattern für die Datenpersistenz.
+ */
 public class MatchService {
     private final MatchDAO matchDAO;
 
+    /**
+     * Erstellt einen neuen MatchService mit Standard-DAOs.
+     */
     public MatchService() {
-        this.matchDAO = getMatchDAO();
+        this(DAOFactory.getInstance());
+    }
+    
+    /**
+     * Erstellt einen neuen MatchService mit der angegebenen DAOFactory.
+     * @param daoFactory Die DAOFactory zum Erstellen von DAOs
+     */
+    public MatchService(DAOFactory daoFactory) {
+        this.matchDAO = daoFactory.createMatchDAO();
     }
 
-    protected MatchDAO getMatchDAO() {
-        return new MatchDAO();
-    }
-
+    /**
+     * Generiert zufällige Matches aus einer Liste von Spielern.
+     * @param players Die Liste der Spieler
+     * @return Eine Liste von generierten Matches
+     */
     public List<Match> generateMatches(List<Player> players) {
         List<Match> matches = new ArrayList<>();
         List<Player> shuffledPlayers = new ArrayList<>(players);

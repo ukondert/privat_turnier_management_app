@@ -10,7 +10,7 @@
             --primary-dark: #2980b9;
             --secondary: #2ecc71;
             --secondary-dark: #27ae60;
-            --danger: #e74c3c;
+            --danger: #e74c3c
             --warning: #f39c12;
             --dark: #34495e;
             --light: #ecf0f1;
@@ -272,16 +272,8 @@
                 <p>Gesamt Teilnehmer</p>
             </div>
             <div class="stat-card">
-                <h3 id="beginnerCount">0</h3>
-                <p>Anfänger</p>
-            </div>
-            <div class="stat-card">
-                <h3 id="intermediateCount">0</h3>
-                <p>Fortgeschrittene</p>
-            </div>
-            <div class="stat-card">
-                <h3 id="proCount">0</h3>
-                <p>Profis</p>
+                <h3 id="totalTournamentsCount">0</h3>
+                <p>Gesamt Turniere</p>
             </div>
         </div>
         
@@ -303,13 +295,16 @@
                     <input type="tel" id="phone">
                 </div>
                 <div class="form-group">
-                    <label for="group">Gruppe</label>
-                    <select id="group">
-                        <option value="">Keine Gruppe</option>
-                        <option value="Anfänger">Anfänger</option>
-                        <option value="Fortgeschritten">Fortgeschritten</option>
-                        <option value="Profi">Profi</option>
-                    </select>
+                    <label for="gamesWon">Gewonnene Spiele</label>
+                    <input type="number" id="gamesWon" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="gamesLost">Verlorene Spiele</label>
+                    <input type="number" id="gamesLost" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="tournaments">Turnierteilnahmen</label>
+                    <input type="number" id="tournaments" min="0" value="0">
                 </div>
                 <div class="form-group">
                     <label for="notes">Anmerkungen</label>
@@ -326,21 +321,15 @@
         <div class="card">
             <div class="search-filter">
                 <input type="text" id="participantSearch" placeholder="Suchen...">
-                <select id="groupFilter">
-                    <option value="">Alle Gruppen</option>
-                    <option value="Anfänger">Anfänger</option>
-                    <option value="Fortgeschritten">Fortgeschritten</option>
-                    <option value="Profi">Profi</option>
-                </select>
             </div>
             
             <table id="participantsTable">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>E-Mail</th>
-                        <th>Telefon</th>
-                        <th>Gruppe</th>
+                        <th>Spiele (G/V)</th>
+                        <th>Turniere</th>
+                        <th>Platzierungen</th>
                         <th>Aktionen</th>
                     </tr>
                 </thead>
@@ -372,14 +361,14 @@
     <script>
         // Datenmodell für Teilnehmer
         let participants = [
-            { id: 1, name: "Max Mustermann", email: "max@example.com", phone: "0123456789", group: "Fortgeschritten", notes: "Regelmäßiger Teilnehmer" },
-            { id: 2, name: "Anna Schmidt", email: "anna@example.com", phone: "0123456788", group: "Anfänger", notes: "Erste Teilnahme" },
-            { id: 3, name: "Thomas Müller", email: "thomas@example.com", phone: "0123456787", group: "Profi", notes: "Turniersieger 2024" },
-            { id: 4, name: "Lisa Weber", email: "lisa@example.com", phone: "0123456786", group: "Fortgeschritten", notes: "" },
-            { id: 5, name: "Michael Koch", email: "michael@example.com", phone: "0123456785", group: "Anfänger", notes: "Benötigt Ausrüstung" },
-            { id: 6, name: "Sarah Meyer", email: "sarah@example.com", phone: "0123456784", group: "Profi", notes: "Internationale Erfahrung" },
-            { id: 7, name: "Daniel Becker", email: "daniel@example.com", phone: "0123456783", group: "Fortgeschritten", notes: "" },
-            { id: 8, name: "Julia Fischer", email: "julia@example.com", phone: "0123456782", group: "Anfänger", notes: "Hat eigene Ausrüstung" }
+            { id: 1, name: "Max Mustermann", email: "max@example.com", phone: "0123456789", notes: "Regelmäßiger Teilnehmer", gamesWon: 5, gamesLost: 2, tournaments: 3, rankings: "1/3/2" },
+            { id: 2, name: "Anna Schmidt", email: "anna@example.com", phone: "0123456788", notes: "Erste Teilnahme", gamesWon: 1, gamesLost: 3, tournaments: 1, rankings: "4" },
+            { id: 3, name: "Thomas Müller", email: "thomas@example.com", phone: "0123456787", notes: "Turniersieger 2024", gamesWon: 12, gamesLost: 0, tournaments: 2, rankings: "1/1" },
+            { id: 4, name: "Lisa Weber", email: "lisa@example.com", phone: "0123456786", notes: "", gamesWon: 7, gamesLost: 4, tournaments: 3, rankings: "2/3/5" },
+            { id: 5, name: "Michael Koch", email: "michael@example.com", phone: "0123456785", notes: "Benötigt Ausrüstung", gamesWon: 0, gamesLost: 2, tournaments: 1, rankings: "8" },
+            { id: 6, name: "Sarah Meyer", email: "sarah@example.com", phone: "0123456784", notes: "Internationale Erfahrung", gamesWon: 10, gamesLost: 3, tournaments: 4, rankings: "2/1/3/2" },
+            { id: 7, name: "Daniel Becker", email: "daniel@example.com", phone: "0123456783", notes: "", gamesWon: 4, gamesLost: 5, tournaments: 2, rankings: "4/6" },
+            { id: 8, name: "Julia Fischer", email: "julia@example.com", phone: "0123456782", notes: "Hat eigene Ausrüstung", gamesWon: 2, gamesLost: 6, tournaments: 1, rankings: "7" }
         ];
         
         // DOM-Elemente laden, wenn das Dokument bereit ist
@@ -389,7 +378,6 @@
             document.getElementById('cancelParticipantForm').addEventListener('click', hideParticipantForm);
             document.getElementById('addParticipantForm').addEventListener('submit', saveParticipant);
             document.getElementById('participantSearch').addEventListener('input', loadParticipantsTable);
-            document.getElementById('groupFilter').addEventListener('change', loadParticipantsTable);
             document.getElementById('importParticipantsBtn').addEventListener('click', showImportModal);
             document.getElementById('cancelImport').addEventListener('click', hideImportModal);
             document.getElementById('confirmImport').addEventListener('click', importParticipants);
@@ -419,14 +407,12 @@
         // Teilnehmerverwaltungsfunktionen
         function loadParticipantsTable() {
             const searchTerm = document.getElementById('participantSearch').value.toLowerCase();
-            const groupFilter = document.getElementById('groupFilter').value;
             
             const filteredParticipants = participants.filter(p => {
                 const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
                                      p.email.toLowerCase().includes(searchTerm) ||
                                      (p.phone && p.phone.toLowerCase().includes(searchTerm));
-                const matchesGroup = !groupFilter || p.group === groupFilter;
-                return matchesSearch && matchesGroup;
+                return matchesSearch;
             });
             
             const tbody = document.querySelector('#participantsTable tbody');
@@ -442,19 +428,14 @@
             filteredParticipants.forEach(participant => {
                 const row = document.createElement('tr');
                 
-                // Gruppenlabel mit Farbkodierung
-                let groupDisplay = '-';
-                if (participant.group) {
-                    const groupClass = participant.group === 'Anfänger' ? 'anfaenger' : 
-                                      participant.group === 'Fortgeschritten' ? 'fortgeschritten' : 'profi';
-                    groupDisplay = `<span class="group-tag ${groupClass}">${participant.group}</span>`;
-                }
+                // Rankings anzeigen
+                let rankingsDisplay = participant.rankings ? participant.rankings : '-';
                 
                 row.innerHTML = `
                     <td>${participant.name}</td>
-                    <td>${participant.email}</td>
-                    <td>${participant.phone || '-'}</td>
-                    <td>${groupDisplay}</td>
+                    <td>${participant.gamesWon} / ${participant.gamesLost}</td>
+                    <td>${participant.tournaments || 0}</td>
+                    <td>${rankingsDisplay}</td>
                     <td class="actions">
                         <button class="btn-primary" onclick="editParticipant(${participant.id})">Bearbeiten</button>
                         <button class="btn-danger" onclick="deleteParticipant(${participant.id})">Löschen</button>
@@ -466,14 +447,10 @@
         
         function updateStatistics() {
             const totalParticipants = participants.length;
-            const beginnerCount = participants.filter(p => p.group === 'Anfänger').length;
-            const intermediateCount = participants.filter(p => p.group === 'Fortgeschritten').length;
-            const proCount = participants.filter(p => p.group === 'Profi').length;
+            const totalTournaments = participants.reduce((sum, p) => sum + (p.tournaments || 0), 0);
             
             document.getElementById('totalParticipantsCount').textContent = totalParticipants;
-            document.getElementById('beginnerCount').textContent = beginnerCount;
-            document.getElementById('intermediateCount').textContent = intermediateCount;
-            document.getElementById('proCount').textContent = proCount;
+            document.getElementById('totalTournamentsCount').textContent = totalTournaments;
         }
         
         function showAddParticipantForm() {
@@ -484,6 +461,9 @@
             document.getElementById('phone').value = '';
             document.getElementById('group').value = '';
             document.getElementById('notes').value = '';
+            document.getElementById('gamesWon').value = 0;
+            document.getElementById('gamesLost').value = 0;
+            document.getElementById('tournaments').value = 0;
             document.getElementById('participantForm').classList.remove('hidden');
         }
         
@@ -500,6 +480,9 @@
             const phone = document.getElementById('phone').value.trim();
             const group = document.getElementById('group').value;
             const notes = document.getElementById('notes').value.trim();
+            const gamesWon = parseInt(document.getElementById('gamesWon').value) || 0;
+            const gamesLost = parseInt(document.getElementById('gamesLost').value) || 0;
+            const tournaments = parseInt(document.getElementById('tournaments').value) || 0;
             
             if (!name || !email) {
                 showNotification('Bitte füllen Sie alle Pflichtfelder aus.', 'error');
@@ -530,7 +513,10 @@
                         email,
                         phone,
                         group,
-                        notes
+                        notes,
+                        gamesWon,
+                        gamesLost,
+                        tournaments
                     };
                     showNotification('Teilnehmer erfolgreich aktualisiert.', 'success');
                 }
@@ -542,7 +528,10 @@
                     email,
                     phone,
                     group,
-                    notes
+                    notes,
+                    gamesWon,
+                    gamesLost,
+                    tournaments
                 };
                 participants.push(newParticipant);
                 showNotification('Teilnehmer erfolgreich hinzugefügt.', 'success');
@@ -564,6 +553,9 @@
             document.getElementById('phone').value = participant.phone || '';
             document.getElementById('group').value = participant.group || '';
             document.getElementById('notes').value = participant.notes || '';
+            document.getElementById('gamesWon').value = participant.gamesWon || 0;
+            document.getElementById('gamesLost').value = participant.gamesLost || 0;
+            document.getElementById('tournaments').value = participant.tournaments || 0;
             document.getElementById('participantForm').classList.remove('hidden');
         }
         
@@ -611,6 +603,8 @@
                 const phoneIndex = headers.findIndex(h => h.trim().toLowerCase() === 'telefon' || h.trim().toLowerCase() === 'phone');
                 const groupIndex = headers.findIndex(h => h.trim().toLowerCase() === 'gruppe' || h.trim().toLowerCase() === 'group');
                 const notesIndex = headers.findIndex(h => h.trim().toLowerCase() === 'anmerkungen' || h.trim().toLowerCase() === 'notes');
+                const gamesWonIndex = headers.findIndex(h => h.trim().toLowerCase() === 'spiele gewonnen' || h.trim().toLowerCase() === 'gewonnene spiele' || h.trim().toLowerCase() === 'games won');
+                const gamesLostIndex = headers.findIndex(h => h.trim().toLowerCase() === 'spiele verloren' || h.trim().toLowerCase() === 'verlorene spiele' || h.trim().toLowerCase() === 'games lost');
                 
                 if (nameIndex === -1 || emailIndex === -1) {
                     showNotification('Die CSV-Datei muss mindestens die Spalten "Name" und "E-Mail" enthalten.', 'error');
@@ -642,6 +636,8 @@
                     const phone = phoneIndex !== -1 ? values[phoneIndex]?.trim() : '';
                     const group = groupIndex !== -1 ? values[groupIndex]?.trim() : '';
                     const notes = notesIndex !== -1 ? values[notesIndex]?.trim() : '';
+                    const gamesWon = gamesWonIndex !== -1 ? parseInt(values[gamesWonIndex]) || 0 : 0;
+                    const gamesLost = gamesLostIndex !== -1 ? parseInt(values[gamesLostIndex]) || 0 : 0;
                     
                     participants.push({
                         id: generateId(),
@@ -649,7 +645,9 @@
                         email,
                         phone,
                         group,
-                        notes
+                        notes,
+                        gamesWon,
+                        gamesLost
                     });
                     
                     importedCount++;
@@ -671,7 +669,7 @@
         
         function exportParticipants() {
             // CSV-Header definieren
-            const headers = ['Name', 'E-Mail', 'Telefon', 'Gruppe', 'Anmerkungen'];
+            const headers = ['Name', 'E-Mail', 'Telefon', 'Gruppe', 'Anmerkungen', 'Gewonnene Spiele', 'Verlorene Spiele'];
             
             // Teilnehmerdaten in CSV-Zeilen umwandeln
             let csvContent = headers.join(',') + '\n';
@@ -682,7 +680,9 @@
                     p.email.replace(/,/g, ';'),
                     (p.phone || '').replace(/,/g, ';'),
                     (p.group || '').replace(/,/g, ';'),
-                    (p.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')  // Zeilenumbrüche entfernen
+                    (p.notes || '').replace(/,/g, ';').replace(/\n/g, ' '),  // Zeilenumbrüche entfernen
+                    p.gamesWon || 0,
+                    p.gamesLost || 0
                 ];
                 csvContent += row.join(',') + '\n';
             });
