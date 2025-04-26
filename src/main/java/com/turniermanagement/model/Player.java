@@ -9,6 +9,7 @@ import java.util.Objects;
 public class Player {
     private Long id;
     private String name;
+    private String email;
     private Map<Tournament, Integer> tournamentRankings;
     private int gamesWon;
     private int gamesLost;
@@ -25,12 +26,20 @@ public class Player {
         this();
         this.name = name;
     }
+    
+    public Player(String name, String email) {
+        this();
+        this.name = name;
+        this.email = email;
+    }
 
     // Getter und Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
     
     // Neue Methoden für tournamentRankings
     public Map<Tournament, Integer> getTournamentRankings() { return tournamentRankings; }
@@ -87,11 +96,12 @@ public class Player {
         return gamesWon == player.gamesWon &&
                gamesLost == player.gamesLost &&
                Objects.equals(id, player.id) &&
-               Objects.equals(name, player.name);
+               Objects.equals(name, player.name) &&
+               Objects.equals(email, player.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, gamesWon, gamesLost);
+        return Objects.hash(id, name, email, gamesWon, gamesLost);
     }
 }

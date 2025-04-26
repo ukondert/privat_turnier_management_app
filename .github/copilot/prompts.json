@@ -29,6 +29,11 @@
         "name": "Update Readme",
         "description": "Update the README file with the latest project information",
         "prompt": "Please update the README file with the latest project information, including any new features, changes in functionality, and instructions for usage. Ensure that the documentation is clear and concise."      
+      },
+      {
+        "name": "chaining of comands in Windows",
+        "description": "chaining of comands must be done by \";\" and not by \"&&\"",
+        "prompt": "Please ensure that all command chaining in the terminal is done using ';' instead of '&&'. This will ensure that each command runs independently and does not depend on the success of the previous command."
       }
     ]
   }

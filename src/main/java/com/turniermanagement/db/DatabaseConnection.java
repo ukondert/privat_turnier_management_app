@@ -111,25 +111,21 @@ public class DatabaseConnection {
                 CREATE TABLE IF NOT EXISTS player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
+                    email TEXT,
                     games_won INTEGER DEFAULT 0,
                     games_lost INTEGER DEFAULT 0
                 )
             """);
 
-            // Prüfe, ob das alte Ranking-Feld existiert und migriere die Daten wenn nötig
+            // Prüfe, ob das Email-Feld bereits existiert
             try {
-                ResultSet rs = connection.getMetaData().getColumns(null, null, "player", "ranking");
-                if (rs.next()) {
-                    // Das Ranking-Feld existiert noch, wir müssen es migrieren
-                    migrateRankingData();
-                    
-                    // Entferne das Ranking-Feld aus der Player-Tabelle
+                ResultSet rs = connection.getMetaData().getColumns(null, null, "player", "email");
+                if (!rs.next()) {
+                    // Das Email-Feld existiert noch nicht, wir fügen es hinzu
                     try {
-                        stmt.execute("ALTER TABLE player DROP COLUMN ranking");
+                        stmt.execute("ALTER TABLE player ADD COLUMN email TEXT");
                     } catch (SQLException e) {
-                        // SQLite unterstützt DROP COLUMN nicht direkt; wir müssten die Tabelle neu erstellen
-                        // In diesem Fall ignorieren wir das alte Feld einfach
-                        System.out.println("Konnte das Ranking-Feld nicht entfernen. Es wird ignoriert.");
+                        System.out.println("Fehler beim Hinzufügen des Email-Felds: " + e.getMessage());
                     }
                 }
             } catch (SQLException e) {

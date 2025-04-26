@@ -40,6 +40,7 @@ public abstract class BaseDAOTest {
                 CREATE TABLE player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
+                    email TEXT,
                     games_won INTEGER DEFAULT 0,
                     games_lost INTEGER DEFAULT 0
                 )

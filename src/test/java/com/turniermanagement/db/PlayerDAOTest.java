@@ -41,6 +41,23 @@ class PlayerDAOTest extends BaseDAOTest {
     }
 
     @Test
+    void testSavePlayerWithEmail() throws SQLException {
+        Player player = new Player("Test Player", "test@example.com");
+        player.setGamesWon(3);
+        player.setGamesLost(1);
+
+        playerDAO.save(player);
+        assertNotNull(player.getId(), "Player ID should be set after save");
+
+        Optional<Player> savedPlayer = playerDAO.findById(player.getId());
+        assertTrue(savedPlayer.isPresent(), "Saved player should be found");
+        assertEquals("Test Player", savedPlayer.get().getName());
+        assertEquals("test@example.com", savedPlayer.get().getEmail());
+        assertEquals(3, savedPlayer.get().getGamesWon());
+        assertEquals(1, savedPlayer.get().getGamesLost());
+    }
+
+    @Test
     void testUpdatePlayer() throws SQLException {
         Player player = new Player("Original Name");
         playerDAO.save(player);
@@ -52,6 +69,20 @@ class PlayerDAOTest extends BaseDAOTest {
         Optional<Player> updatedPlayer = playerDAO.findById(playerId);
         assertTrue(updatedPlayer.isPresent(), "Updated player should be found");
         assertEquals("Updated Name", updatedPlayer.get().getName());
+    }
+
+    @Test
+    void testUpdatePlayerEmail() throws SQLException {
+        Player player = new Player("Email Test Player", "initial@example.com");
+        playerDAO.save(player);
+        Long playerId = player.getId();
+
+        player.setEmail("updated@example.com");
+        playerDAO.update(player);
+
+        Optional<Player> updatedPlayer = playerDAO.findById(playerId);
+        assertTrue(updatedPlayer.isPresent(), "Updated player should be found");
+        assertEquals("updated@example.com", updatedPlayer.get().getEmail());
     }
 
     @Test
@@ -82,6 +113,40 @@ class PlayerDAOTest extends BaseDAOTest {
     void testFindByIdNonExistent() throws SQLException {
         Optional<Player> nonExistentPlayer = playerDAO.findById(999L);
         assertFalse(nonExistentPlayer.isPresent(), "Should not find non-existent player");
+    }
+
+    @Test
+    void testFindByName() throws SQLException {
+        Player player = new Player("Unique Name", "name@example.com");
+        playerDAO.save(player);
+
+        Optional<Player> foundPlayer = playerDAO.findByName("Unique Name");
+        assertTrue(foundPlayer.isPresent(), "Player should be found by name");
+        assertEquals(player.getId(), foundPlayer.get().getId());
+        assertEquals("name@example.com", foundPlayer.get().getEmail());
+    }
+
+    @Test
+    void testFindByEmail() throws SQLException {
+        Player player = new Player("Email Search Player", "unique@example.com");
+        playerDAO.save(player);
+
+        Optional<Player> foundPlayer = playerDAO.findByEmail("unique@example.com");
+        assertTrue(foundPlayer.isPresent(), "Player should be found by email");
+        assertEquals(player.getId(), foundPlayer.get().getId());
+        assertEquals("Email Search Player", foundPlayer.get().getName());
+    }
+
+    @Test
+    void testFindByEmailWithNullEmail() throws SQLException {
+        Optional<Player> notFoundPlayer = playerDAO.findByEmail(null);
+        assertFalse(notFoundPlayer.isPresent(), "Player should not be found with null email");
+    }
+
+    @Test
+    void testFindByNonExistentEmail() throws SQLException {
+        Optional<Player> notFoundPlayer = playerDAO.findByEmail("nonexistent@example.com");
+        assertFalse(notFoundPlayer.isPresent(), "Player should not be found with non-existent email");
     }
 
     @Test

@@ -31,11 +31,12 @@ public class SQLitePlayerDAO implements PlayerDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
-            String sql = "INSERT INTO player (name, games_won, games_lost) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO player (name, email, games_won, games_lost) VALUES (?, ?, ?, ?)";
             try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setString(1, player.getName());
-                pstmt.setInt(2, player.getGamesWon());
-                pstmt.setInt(3, player.getGamesLost());
+                pstmt.setString(2, player.getEmail());
+                pstmt.setInt(3, player.getGamesWon());
+                pstmt.setInt(4, player.getGamesLost());
                 pstmt.executeUpdate();
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -85,12 +86,13 @@ public class SQLitePlayerDAO implements PlayerDAO {
         Connection connection = getConnection();
         connection.setAutoCommit(false);
         try {
-            String sql = "UPDATE player SET name = ?, games_won = ?, games_lost = ? WHERE id = ?";
+            String sql = "UPDATE player SET name = ?, email = ?, games_won = ?, games_lost = ? WHERE id = ?";
             try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
                 pstmt.setString(1, player.getName());
-                pstmt.setInt(2, player.getGamesWon());
-                pstmt.setInt(3, player.getGamesLost());
-                pstmt.setLong(4, player.getId());
+                pstmt.setString(2, player.getEmail());
+                pstmt.setInt(3, player.getGamesWon());
+                pstmt.setInt(4, player.getGamesLost());
+                pstmt.setLong(5, player.getId());
                 pstmt.executeUpdate();
             }
 
@@ -246,6 +248,7 @@ public class SQLitePlayerDAO implements PlayerDAO {
         Player player = new Player();
         player.setId(rs.getLong("id"));
         player.setName(rs.getString("name"));
+        player.setEmail(rs.getString("email"));
         player.setGamesWon(rs.getInt("games_won"));
         player.setGamesLost(rs.getInt("games_lost"));
         return player;
@@ -284,6 +287,74 @@ public class SQLitePlayerDAO implements PlayerDAO {
             throw e;
         } finally {
             connection.setAutoCommit(true);
+        }
+    }
+
+    @Override
+    public Optional<Player> findByName(String name) throws SQLException {
+        String sql = "SELECT p.*, t.id as tournament_id, t.name as tournament_name, " +
+                    "t.start_date, t.end_date, t.status, tp.ranking " +
+                    "FROM player p " +
+                    "LEFT JOIN tournament_player tp ON p.id = tp.player_id " +
+                    "LEFT JOIN tournament t ON tp.tournament_id = t.id " +
+                    "WHERE p.name = ?";
+        
+        try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
+            
+            Player player = null;
+            while (rs.next()) {
+                if (player == null) {
+                    player = createPlayerFromResultSet(rs);
+                }
+                Long tournamentId = rs.getLong("tournament_id");
+                if (!rs.wasNull()) {
+                    Tournament tournament = createTournamentFromResultSet(rs);
+                    player.getTournaments().add(tournament);
+                    
+                    // Setze das Ranking für dieses Tournament
+                    int ranking = rs.getInt("ranking");
+                    player.setRanking(tournament, ranking);
+                }
+            }
+            return Optional.ofNullable(player);
+        }
+    }
+    
+    @Override
+    public Optional<Player> findByEmail(String email) throws SQLException {
+        if (email == null || email.isEmpty()) {
+            return Optional.empty();
+        }
+        
+        String sql = "SELECT p.*, t.id as tournament_id, t.name as tournament_name, " +
+                    "t.start_date, t.end_date, t.status, tp.ranking " +
+                    "FROM player p " +
+                    "LEFT JOIN tournament_player tp ON p.id = tp.player_id " +
+                    "LEFT JOIN tournament t ON tp.tournament_id = t.id " +
+                    "WHERE p.email = ?";
+        
+        try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            
+            Player player = null;
+            while (rs.next()) {
+                if (player == null) {
+                    player = createPlayerFromResultSet(rs);
+                }
+                Long tournamentId = rs.getLong("tournament_id");
+                if (!rs.wasNull()) {
+                    Tournament tournament = createTournamentFromResultSet(rs);
+                    player.getTournaments().add(tournament);
+                    
+                    // Setze das Ranking für dieses Tournament
+                    int ranking = rs.getInt("ranking");
+                    player.setRanking(tournament, ranking);
+                }
+            }
+            return Optional.ofNullable(player);
         }
     }
 }
