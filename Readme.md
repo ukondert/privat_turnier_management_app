@@ -6,16 +6,22 @@ Eine JavaFX-Anwendung zur Verwaltung von Turnieren und Spielerpaarungen.
 
 ### Teilnehmerverwaltung
 - **Teilnehmer anzeigen**: Alle Teilnehmer in einer übersichtlichen Tabelle anzeigen
-- **Teilnehmer hinzufügen**: Neue Teilnehmer mit Namen und automatisch generierten Statistiken erstellen
+- **Teilnehmer hinzufügen**: Neue Teilnehmer mit Namen, E-Mail-Adresse und automatisch generierten Statistiken erstellen
 - **Teilnehmer bearbeiten**: Bestehende Teilnehmer bearbeiten
-  - Standardmäßig kann nur der Name bearbeitet werden
+  - Standardmäßig können Name und E-Mail bearbeitet werden
   - Weitere Felder (Spiele, Turniere, Platzierungen) können mittels Checkboxen zur Bearbeitung freigeschaltet werden
 - **Teilnehmer löschen**: Nicht mehr benötigte Teilnehmer aus dem System entfernen
-- **Teilnehmer suchen**: Schnelle Suche nach Teilnehmern über den Namen
+- **Teilnehmer suchen**: Schnelle Suche nach Teilnehmern über den Namen oder die E-Mail-Adresse
 
 ## Technische Änderungen
 
 ### 26.04.2025
+- E-Mail-Funktionalität für Spieler hinzugefügt:
+  - Spieler-Entity um E-Mail-Feld erweitert
+  - Datenbank-Schema aktualisiert
+  - PlayerDAO um E-Mail-Suchfunktionen erweitert
+  - PlayerService mit E-Mail-Validierung implementiert
+  - Unit-Tests für E-Mail-Funktionalität hinzugefügt
 - Refactoring: DAOFactory-Konstruktor von `private` zu `protected` geändert, um Vererbung in TestDAOFactory zu ermöglichen
 - Testabdeckung verbessert durch Behebung von Kompilierungsfehlern in den Tests
 
@@ -28,7 +34,7 @@ erDiagram
     PLAYER {
         long id PK
         string name
-        int ranking
+        string email
         int games_won
         int games_lost
     }
@@ -79,7 +85,7 @@ erDiagram
 #### Player (Spieler)
 - **id**: Eindeutige ID des Spielers
 - **name**: Name des Spielers
-- **ranking**: Aktuelle Ranglistenposition
+- **email**: E-Mail-Adresse des Spielers (optional)
 - **games_won**: Anzahl gewonnener Spiele
 - **games_lost**: Anzahl verlorener Spiele
 
