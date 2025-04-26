@@ -237,6 +237,67 @@ public class SQLiteTournamentDAO implements TournamentDAO {
         }
     }
 
+    @Override
+    public void deleteRound(Long roundId) throws SQLException {
+        Connection connection = getConnection();
+        connection.setAutoCommit(false);
+        try {
+            // Lösche zuerst alle Matches der Runde
+            String deleteMatchesSql = "DELETE FROM match WHERE round_id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(deleteMatchesSql)) {
+                pstmt.setLong(1, roundId);
+                pstmt.executeUpdate();
+            }
+
+            // Dann lösche die Runde selbst
+            String deleteRoundSql = "DELETE FROM round WHERE id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(deleteRoundSql)) {
+                pstmt.setLong(1, roundId);
+                pstmt.executeUpdate();
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
+    @Override
+    public void removePlayers(Long tournamentId) throws SQLException {
+        Connection connection = getConnection();
+        connection.setAutoCommit(false);
+        try {
+            // Hole zuerst das Turnier und die Spieler, um die Objektreferenzen zu aktualisieren
+            Optional<Tournament> tournament = findById(tournamentId);
+            
+            // Lösche dann die Beziehungen aus der Datenbank
+            String deleteSql = "DELETE FROM tournament_player WHERE tournament_id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(deleteSql)) {
+                pstmt.setLong(1, tournamentId);
+                pstmt.executeUpdate();
+            }
+
+            // Aktualisiere die Objektreferenzen in den Spielern
+            if (tournament.isPresent()) {
+                Tournament t = tournament.get();
+                for (Player player : new ArrayList<>(t.getPlayers())) {
+                    player.removeTournament(t);
+                    t.removePlayer(player);
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(true);
+        }
+    }
+
     private Tournament createTournamentFromResultSet(ResultSet rs) throws SQLException {
         Tournament tournament = new Tournament();
         tournament.setId(rs.getLong("id"));

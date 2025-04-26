@@ -1,5 +1,11 @@
 package com.turniermanagement;
 
+import com.turniermanagement.model.Player;
+import com.turniermanagement.model.Tournament;
+import com.turniermanagement.service.PlayerService;
+import com.turniermanagement.service.TournamentService;
+
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,6 +20,9 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ParticipantManagementController {
 
@@ -48,6 +57,18 @@ public class ParticipantManagementController {
     private TextField searchField;
     
     private ObservableList<Participant> participantsList = FXCollections.observableArrayList();
+    private PlayerService playerService;
+    private TournamentService tournamentService;
+    
+    public ParticipantManagementController() {
+        try {
+            this.playerService = new PlayerService();
+            this.tournamentService = new TournamentService();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Initialisierungsfehler", "Fehler beim Initialisieren der Services: " + e.getMessage());
+        }
+    }
     
     @FXML
     private void initialize() {
@@ -60,7 +81,7 @@ public class ParticipantManagementController {
         // Spalte für Aktionen mit Bearbeiten-Button
         setupActionsColumn();
         
-        // Beispieldaten hinzufügen
+        // Echte Daten laden
         loadParticipants();
         
         // Teilnehmer-Button-Klick-Handler
@@ -128,6 +149,9 @@ public class ParticipantManagementController {
             // Controller holen und Teilnehmer setzen
             ParticipantEditDialogController controller = loader.getController();
             
+            // PlayerService an den Dialog-Controller übergeben
+            controller.setPlayerService(playerService);
+            
             // setParticipant immer aufrufen, auch mit null für einen neuen Teilnehmer
             controller.setParticipant(participant);
             
@@ -173,19 +197,56 @@ public class ParticipantManagementController {
         
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                participantsList.remove(participant);
-                updateStatistics();
+                try {
+                    // Lösche Spieler aus der Datenbank
+                    playerService.deletePlayer(participant.getPlayerId());
+                    
+                    // Lösche Spieler aus der Tabelle
+                    participantsList.remove(participant);
+                    updateStatistics();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    showErrorAlert("Fehler beim Löschen", "Der Teilnehmer konnte nicht gelöscht werden: " + e.getMessage());
+                }
             }
         });
     }
     
     private void loadParticipants() {
-        // Beispieldaten - später durch Datenbankabfrage ersetzen
-        participantsList.add(new Participant("Max Mustermann", "10/5", "3", "1., 2., 5."));
-        participantsList.add(new Participant("Erika Musterfrau", "15/2", "4", "1., 1., 2., 3."));
-        participantsList.add(new Participant("John Doe", "8/8", "2", "4., 6."));
+        try {
+            // Lade Spieler aus der Datenbank
+            List<Player> players = playerService.getAllPlayers();
+            
+            // Konvertiere Player zu Participant
+            participantsList.clear();
+            for (Player player : players) {
+                Participant participant = playerToParticipant(player);
+                participantsList.add(participant);
+            }
+            
+            participantsTable.setItems(participantsList);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showErrorAlert("Datenbankfehler", "Fehler beim Laden der Teilnehmer: " + e.getMessage());
+        }
+    }
+    
+    private Participant playerToParticipant(Player player) {
+        // Erstelle ein Participant-Objekt aus einem Player-Objekt
+        String gamesStr = player.getGamesWon() + "/" + player.getGamesLost();
         
-        participantsTable.setItems(participantsList);
+        String tournamentsStr = String.valueOf(player.getTournaments().size());
+        
+        // Formattiere Rankings als Liste
+        String rankingsStr = player.getTournamentRankings().entrySet().stream()
+                .map(entry -> {
+                    String tournamentName = entry.getKey().getName();
+                    Integer ranking = entry.getValue();
+                    return tournamentName + ": " + ranking;
+                })
+                .collect(Collectors.joining(", "));
+        
+        return new Participant(player.getId(), player.getName(), player.getEmail(), gamesStr, tournamentsStr, rankingsStr);
     }
     
     private void filterParticipants(String searchText) {
@@ -197,7 +258,8 @@ public class ParticipantManagementController {
             String lowerCaseFilter = searchText.toLowerCase();
             
             for (Participant participant : participantsList) {
-                if (participant.getName().toLowerCase().contains(lowerCaseFilter)) {
+                if (participant.getName().toLowerCase().contains(lowerCaseFilter) ||
+                    (participant.getEmail() != null && participant.getEmail().toLowerCase().contains(lowerCaseFilter))) {
                     filteredList.add(participant);
                 }
             }
@@ -208,8 +270,20 @@ public class ParticipantManagementController {
     
     private void updateStatistics() {
         totalParticipantsLabel.setText(String.valueOf(participantsList.size()));
-        // Weitere Statistikberechnungen hier
-        totalTournamentsLabel.setText("5"); // Später durch echte Daten ersetzen
+        
+        try {
+            // Anzahl der Turniere aus der Datenbank laden
+            List<Tournament> tournaments = tournamentService.getAllTournaments();
+            totalTournamentsLabel.setText(String.valueOf(tournaments.size()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            totalTournamentsLabel.setText("?");
+        }
+    }
+    
+    public void refreshData() {
+        loadParticipants();
+        updateStatistics();
     }
     
     private void showErrorAlert(String title, String message) {
@@ -222,16 +296,28 @@ public class ParticipantManagementController {
     
     // Teilnehmer-Klasse
     public static class Participant {
+        private final SimpleLongProperty playerId;
         private final SimpleStringProperty name;
+        private final SimpleStringProperty email;
         private final SimpleStringProperty games;
         private final SimpleStringProperty tournaments;
         private final SimpleStringProperty rankings;
         
-        public Participant(String name, String games, String tournaments, String rankings) {
+        public Participant(Long playerId, String name, String email, String games, String tournaments, String rankings) {
+            this.playerId = new SimpleLongProperty(playerId);
             this.name = new SimpleStringProperty(name);
+            this.email = new SimpleStringProperty(email != null ? email : "");
             this.games = new SimpleStringProperty(games);
             this.tournaments = new SimpleStringProperty(tournaments);
             this.rankings = new SimpleStringProperty(rankings);
+        }
+        
+        public Long getPlayerId() {
+            return playerId.get();
+        }
+        
+        public SimpleLongProperty playerIdProperty() {
+            return playerId;
         }
         
         public String getName() {
@@ -244,6 +330,18 @@ public class ParticipantManagementController {
         
         public SimpleStringProperty nameProperty() {
             return name;
+        }
+        
+        public String getEmail() {
+            return email.get();
+        }
+        
+        public void setEmail(String email) {
+            this.email.set(email);
+        }
+        
+        public SimpleStringProperty emailProperty() {
+            return email;
         }
         
         public String getGames() {
@@ -280,6 +378,20 @@ public class ParticipantManagementController {
         
         public SimpleStringProperty rankingsProperty() {
             return rankings;
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Participant) {
+                Participant other = (Participant) obj;
+                return this.playerId.get() == other.playerId.get();
+            }
+            return false;
+        }
+        
+        @Override
+        public int hashCode() {
+            return playerId.hashCode();
         }
     }
 }

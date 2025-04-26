@@ -1,6 +1,7 @@
 package com.turniermanagement.db;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,26 +19,48 @@ public abstract class BaseDAOTest {
         // Erstelle eine TestDAOFactory, die die Test-Connection verwendet
         daoFactory = new TestDAOFactory(connection);
         
-        dropTablesIfExist();
+        // Aktiviere Foreign Keys
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("PRAGMA foreign_keys = ON");
+        }
+        
+        // Tabellen erstellen
         createTables();
     }
     
-    private void dropTablesIfExist() throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            // Zuerst die Verbindungstabellen löschen (wegen Fremdschlüsselbeziehungen)
-            stmt.execute("DROP TABLE IF EXISTS tournament_player");
-            stmt.execute("DROP TABLE IF EXISTS match");
-            stmt.execute("DROP TABLE IF EXISTS round");
-            stmt.execute("DROP TABLE IF EXISTS tournament");
-            stmt.execute("DROP TABLE IF EXISTS player");
+    @AfterEach
+    void tearDown() throws SQLException {
+        // Lösche alle Daten nach dem Test
+        clearAllData();
+        
+        // Schließe die Verbindung
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
         }
     }
-
+    
+    private void clearAllData() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
+            // Deaktiviere Foreign Keys temporär für das Löschen
+            stmt.execute("PRAGMA foreign_keys = OFF");
+            
+            // Lösche Daten aus allen Tabellen
+            stmt.execute("DELETE FROM tournament_player");
+            stmt.execute("DELETE FROM match");
+            stmt.execute("DELETE FROM round");
+            stmt.execute("DELETE FROM tournament");
+            stmt.execute("DELETE FROM player");
+            
+            // Aktiviere Foreign Keys wieder
+            stmt.execute("PRAGMA foreign_keys = ON");
+        }
+    }
+    
     private void createTables() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             // Player Tabelle (ohne Ranking Feld)
             stmt.execute("""
-                CREATE TABLE player (
+                CREATE TABLE IF NOT EXISTS player (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     email TEXT,
@@ -48,7 +71,7 @@ public abstract class BaseDAOTest {
 
             // Tournament Tabelle
             stmt.execute("""
-                CREATE TABLE tournament (
+                CREATE TABLE IF NOT EXISTS tournament (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     start_date TEXT,
@@ -59,7 +82,7 @@ public abstract class BaseDAOTest {
 
             // Round Tabelle
             stmt.execute("""
-                CREATE TABLE round (
+                CREATE TABLE IF NOT EXISTS round (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     tournament_id INTEGER,
                     round_number INTEGER,
@@ -70,7 +93,7 @@ public abstract class BaseDAOTest {
 
             // Match Tabelle
             stmt.execute("""
-                CREATE TABLE match (
+                CREATE TABLE IF NOT EXISTS match (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     round_id INTEGER,
                     player1_id INTEGER,
@@ -88,7 +111,7 @@ public abstract class BaseDAOTest {
 
             // Tournament_Player Verbindungstabelle mit Ranking als Beziehungsattribut
             stmt.execute("""
-                CREATE TABLE tournament_player (
+                CREATE TABLE IF NOT EXISTS tournament_player (
                     tournament_id INTEGER,
                     player_id INTEGER,
                     ranking INTEGER DEFAULT 0,

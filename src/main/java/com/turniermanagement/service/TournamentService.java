@@ -141,4 +141,41 @@ public class TournamentService {
         int gamesWon = 0;
         int gamesLost = 0;
     }
+
+    /**
+     * Gibt alle Turniere aus der Datenbank zurück.
+     * @return Liste aller Turniere
+     * @throws SQLException Bei Datenbankfehlern
+     */
+    public List<Tournament> getAllTournaments() throws SQLException {
+        return tournamentDAO.findAll();
+    }
+    
+    /**
+     * Löscht alle Einträge aus der Datenbank.
+     * WARNUNG: Diese Methode löscht ALLE Daten ohne Backup!
+     * Sollte nur in Testumgebungen oder bei kompletter Neuinitialisierung verwendet werden.
+     * 
+     * @throws SQLException Bei Datenbankfehlern
+     */
+    public void deleteAllData() throws SQLException {
+        // Hole Turniere und lösche alle zugehörigen Daten
+        List<Tournament> tournaments = tournamentDAO.findAll();
+        for (Tournament tournament : tournaments) {
+            // Lösche alle Runden und zugehörigen Matches
+            for (Round round : tournament.getRounds()) {
+                tournamentDAO.deleteRound(round.getId());
+            }
+            // Entferne Spieler-Zuordnungen
+            tournamentDAO.removePlayers(tournament.getId());
+            // Lösche Turnier
+            tournamentDAO.delete(tournament.getId());
+        }
+        
+        // Lösche alle Spieler
+        List<Player> players = playerDAO.findAll();
+        for (Player player : players) {
+            playerDAO.delete(player.getId());
+        }
+    }
 }
